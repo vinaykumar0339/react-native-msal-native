@@ -1,17 +1,30 @@
-import { useEffect, useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
-import MSALNative from 'react-native-msal-native';
+import { View, StyleSheet, Button, Alert } from 'react-native';
+import { PublicClientApplication } from 'react-native-msal-native';
 
 export default function App() {
-  const [result, setResult] = useState<number | null>(null);
-
-  useEffect(() => {
-    MSALNative.multiply(3, 7).then(setResult);
-  }, []);
+  const createPublicClientApplication = async () => {
+    try {
+      await PublicClientApplication.instance().createPublicClientApplication({
+        ios: {
+          clientId: 'your-client-id',
+          authority: 'https://login.microsoftonline.com/your-tenant-id',
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message);
+      } else {
+        Alert.alert('Error', 'An unknown error occurred');
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Button
+        onPress={createPublicClientApplication}
+        title="Create Public Client Application"
+      />
     </View>
   );
 }

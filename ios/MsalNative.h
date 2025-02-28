@@ -1,3 +1,7 @@
+
+#import "MSAL/MSAL.h"
+#import <React/RCTConvert.h>
+
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "generated/RNMsalNativeSpec/RNMsalNativeSpec.h"
 

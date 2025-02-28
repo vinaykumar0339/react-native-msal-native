@@ -1775,7 +1775,7 @@ SPEC CHECKSUMS:
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: b417d2b2aee3b89b58e63e23a51e02be91dc876d
   MSAL: 088bc688c1ce1a62f0d9c13905ddb31f8f1ac700
-  MsalNative: c275b67cfb1d9c7793bfa1f7551ce3edec9770f9
+  MsalNative: 65b7eb2136852ef1d3245c088b2d7681fe545c4b
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: b2eecf2d60216df56bc5e6be5f063826d3c1ee35
   RCTRequired: 78522de7dc73b81f3ed7890d145fa341f5bb32ea

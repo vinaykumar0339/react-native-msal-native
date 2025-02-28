@@ -2,6 +2,7 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import MsalNative
 
 @main
 class AppDelegate: RCTAppDelegate {
@@ -18,6 +19,11 @@ class AppDelegate: RCTAppDelegate {
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
+  }
+  
+  override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+          
+    return MSALPublicClientApplication.handleMSALResponse(url, sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String)
   }
 
   override func bundleURL() -> URL? {
