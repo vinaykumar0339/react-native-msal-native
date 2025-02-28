@@ -5,7 +5,8 @@ import { Platform } from 'react-native';
 interface IPublicClientApplication {
   createPublicClientApplication(
     config: PublicClientApplicationConfig
-  ): Promise<void>;
+  ): Promise<string>;
+  acquireToken(): Promise<string>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -21,11 +22,15 @@ export class PublicClientApplication implements IPublicClientApplication {
 
   createPublicClientApplication(
     config: PublicClientApplicationConfig
-  ): Promise<void> {
+  ): Promise<string> {
     const platformConfig = Platform.OS === 'ios' ? config.ios : config.android;
     if (!platformConfig) {
       throw new Error('please provide the config not found');
     }
     return MsalNative.createPublicClientApplication(platformConfig);
+  }
+
+  acquireToken(): Promise<string> {
+    return MsalNative.acquireToken();
   }
 }
