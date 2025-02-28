@@ -1,4 +1,4 @@
-import type { PublicClientApplicationConfig } from './types';
+import type { MSALNativeResult, PublicClientApplicationConfig } from './types';
 import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
 
@@ -6,7 +6,7 @@ interface IPublicClientApplication {
   createPublicClientApplication(
     config: PublicClientApplicationConfig
   ): Promise<string>;
-  acquireToken(): Promise<string>;
+  acquireToken(config?: { [key: string]: any }): Promise<MSALNativeResult>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -30,7 +30,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     return MsalNative.createPublicClientApplication(platformConfig);
   }
 
-  acquireToken(): Promise<string> {
-    return MsalNative.acquireToken();
+  // need to change the type of config
+  acquireToken(config?: { [key: string]: any }): Promise<MSALNativeResult> {
+    return MsalNative.acquireToken(
+      config ?? {}
+    ) as unknown as Promise<MSALNativeResult>;
   }
 }

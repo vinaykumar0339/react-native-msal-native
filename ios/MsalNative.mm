@@ -59,7 +59,7 @@ RCT_EXPORT_METHOD(createPublicClientApplication:(nonnull NSDictionary *)config r
   }
 }
 
-RCT_EXPORT_METHOD(acquireToken:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
   if (!_application) {
     reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
     return;
@@ -79,8 +79,11 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull RCTPromiseResolveBlock)resolve reject:(n
     
     MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
     
-    NSArray<NSString *> *scopes = @[];
+    NSArray<NSString *> *scopes = [RCTConvert NSStringArray:config[@"scopes"]];
+    NSDictionary* extraQueryParameters = [RCTConvert NSDictionary:config[@"extraQueryParameters"]];
+    
     MSALInteractiveTokenParameters *interactiveParams = [[MSALInteractiveTokenParameters alloc] initWithScopes:scopes webviewParameters:webParameters];
+    interactiveParams.extraQueryParameters = extraQueryParameters;
     
     [strongSelf->_application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult * _Nullable result, NSError * _Nullable error) {
       if (error) {

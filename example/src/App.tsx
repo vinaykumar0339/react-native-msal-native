@@ -31,7 +31,6 @@ export default function App() {
     try {
       const success = await PublicClientApplication.instance().acquireToken();
       console.log(success, 'success');
-      Alert.alert('Success', success);
     } catch (error) {
       showErrorAlert(error);
     }

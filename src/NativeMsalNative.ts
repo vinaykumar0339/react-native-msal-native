@@ -6,7 +6,9 @@ export interface Spec extends TurboModule {
   createPublicClientApplication(config: {
     [key: string]: string;
   }): Promise<string>;
-  acquireToken(): Promise<string>;
+  acquireToken(config: {
+    [key: string]: any;
+  }): Promise<{ [key: string]: string }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('MsalNative');
