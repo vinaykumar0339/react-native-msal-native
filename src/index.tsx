@@ -1,5 +1,14 @@
-import MsalNative from './NativeMsalNative';
+import { NativeModules } from 'react-native';
+import type { Spec } from './NativeMsalNative';
 
-export function multiply(a: number, b: number): number {
-  return MsalNative.multiply(a, b);
+declare global {
+  var __turboModuleProxy: any;
 }
+
+const isTurboModuleEnabled = global.__turboModuleProxy != null;
+
+const MsalNative: Spec = isTurboModuleEnabled
+  ? require('./NativeMsalNative').default
+  : NativeModules.MsalNative;
+
+export default MsalNative;
