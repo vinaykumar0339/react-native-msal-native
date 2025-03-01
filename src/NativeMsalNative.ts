@@ -12,6 +12,7 @@ export interface Spec extends TurboModule {
     [key: string]: string;
   }): Promise<{ [key: string]: string }>;
   cancelCurrentWebAuthSession(): Promise<boolean>;
+  allAccounts(): Promise<{ [key: string]: string }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('MsalNative');

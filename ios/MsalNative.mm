@@ -272,6 +272,23 @@ RCT_EXPORT_METHOD(cancelCurrentWebAuthSession:(nonnull RCTPromiseResolveBlock)re
   resolve(@(cancelled));
 }
 
+RCT_EXPORT_METHOD(allAccounts:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  NSError *error = nil;
+  NSArray<MSALAccount *> *allAccounts = [self.application allAccounts:&error];
+  if (error) {
+    reject(@"ERROR", @"Error While getting all accounts. For more info check the userinfo object", error);
+  } else {
+    NSArray<NSDictionary *> *accounts = [MsalModalHelper convertMsalAccountsToDictionaries:allAccounts];
+    resolve(accounts);
+  }
+}
+
+
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
 (const facebook::react::ObjCTurboModule::InitParams &)params

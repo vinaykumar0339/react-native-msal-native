@@ -17,6 +17,7 @@ interface IPublicClientApplication {
   acquireTokenSilent(
     config?: AcquireSilentTokenConfig
   ): Promise<MSALNativeResult>;
+  allAccounts(): Promise<MSALNativeResult[]>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -28,6 +29,10 @@ export class PublicClientApplication implements IPublicClientApplication {
       this._instance = new PublicClientApplication();
     }
     return this._instance;
+  }
+
+  static async cancelCurrentWebAuthSession(): Promise<boolean> {
+    return MsalNative.cancelCurrentWebAuthSession();
   }
 
   createPublicClientApplication(
@@ -68,7 +73,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     ) as unknown as Promise<MSALNativeResult>;
   }
 
-  static async cancelCurrentWebAuthSession(): Promise<boolean> {
-    return MsalNative.cancelCurrentWebAuthSession();
+  allAccounts(): Promise<MSALNativeResult[]> {
+    return MsalNative.allAccounts() as unknown as Promise<MSALNativeResult[]>;
   }
 }

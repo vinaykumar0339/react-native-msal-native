@@ -20,7 +20,7 @@ export default function App() {
             redirectUri: 'msauth.msalnative.example://auth',
           },
         });
-
+      console.log(success, 'createPublicClientApplication');
       Alert.alert('Success', success);
     } catch (error) {
       showErrorAlert(error);
@@ -34,7 +34,7 @@ export default function App() {
           promptType: 'select_account',
         },
       });
-      console.log(success, 'success');
+      console.log(success, 'acquireToken');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -50,7 +50,16 @@ export default function App() {
             //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
           },
         });
-      console.log(success, 'success');
+      console.log(success, 'acquireTokenSilently');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
+  const allAccounts = async () => {
+    try {
+      const success = await PublicClientApplication.instance().allAccounts();
+      console.log(success, 'allAccounts');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -64,6 +73,7 @@ export default function App() {
       />
       <Button onPress={acquireToken} title="Acquire Token" />
       <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
+      <Button onPress={allAccounts} title="Get All Accounts" />
     </View>
   );
 }

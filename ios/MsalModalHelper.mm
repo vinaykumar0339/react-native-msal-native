@@ -79,6 +79,16 @@
   return accountDict;
 }
 
++ (NSArray<NSDictionary *> *)convertMsalAccountsToDictionaries:(NSArray<MSALAccount *> *)accounts {
+  NSMutableArray *resultArray = [NSMutableArray array];
+  
+  for (MSALAccount *account in accounts) {
+    [resultArray addObject:[self convertMsalAccountToDictionary:account]];
+  }
+  
+  return resultArray;
+}
+
 + (NSArray<NSDictionary *> *)convertMsalTenantProfilesToDictionaries:(NSArray<MSALTenantProfile *> *)tenantProfiles {
   NSMutableArray *resultArray = [NSMutableArray array];
   
