@@ -12,13 +12,6 @@
 RCT_EXPORT_MODULE()
 
 // MARK: React Native Export Methods
-RCT_EXPORT_METHOD(multiply:(double)a
-                  b:(double)b
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject) {
-  NSNumber *result = @(a * b);
-  resolve(result);
-}
 
 RCT_EXPORT_METHOD(createPublicClientApplication:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
   NSString *clientId = [RCTConvert NSString:config[@"clientId"]];
@@ -176,6 +169,12 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     }];
   });
 }
+
+RCT_EXPORT_METHOD(cancelCurrentWebAuthSession:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  BOOL cancelled = [MSALPublicClientApplication cancelCurrentWebAuthSession];
+  resolve(@(cancelled));
+}
+
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

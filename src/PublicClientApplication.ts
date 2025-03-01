@@ -45,4 +45,8 @@ export class PublicClientApplication implements IPublicClientApplication {
       platformConfig ?? {}
     ) as unknown as Promise<MSALNativeResult>;
   }
+
+  static async cancelCurrentWebAuthSession(): Promise<boolean> {
+    return MsalNative.cancelCurrentWebAuthSession();
+  }
 }
