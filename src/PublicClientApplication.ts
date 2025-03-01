@@ -26,11 +26,34 @@ interface IPublicClientApplication {
   getCurrentAccount(): Promise<CurrentAccountResponse>;
   removeAccount(config: AccountConfig): Promise<boolean>;
   singOut(config: SignOutAccountConfig): Promise<void>;
-  setBrokerAvailability(type: 'auto' | 'none'): void;
+
+  // Device Information
+  isCompatibleAADBrokerAvailable(): Promise<boolean>;
+  sdkVersion(): Promise<string>;
 }
 
-export class PublicClientApplication implements IPublicClientApplication {
-  private constructor() {}
+abstract class APublicClientApplication {
+  instance(): IPublicClientApplication {
+    throw new Error('Method not implemented.');
+  }
+
+  cancelCurrentWebAuthSession(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  // Device Information
+  sdkVersion(): Promise<string> {
+    throw new Error('Method not implemented.');
+  }
+}
+
+export class PublicClientApplication
+  extends APublicClientApplication
+  implements IPublicClientApplication
+{
+  private constructor() {
+    super();
+  }
 
   private static _instance: PublicClientApplication;
   static instance() {
@@ -102,7 +125,21 @@ export class PublicClientApplication implements IPublicClientApplication {
     return MsalNative.signOut(config as any);
   }
 
-  setBrokerAvailability(type: 'auto' | 'none') {
-    return MsalNative.setBrokerAvailability(type);
+  /**
+   * A boolean indicates if a compatible broker is present in device for AAD requests.
+   * Platform: iOS
+   * @returns Promise<boolean>
+   */
+  isCompatibleAADBrokerAvailable(): Promise<boolean> {
+    return MsalNative.isCompatibleAADBrokerAvailable();
+  }
+
+  /**
+   * A String indicates the version of current MSAL SDK.
+   * Platform: iOS
+   * @returns Promise<string>
+   */
+  static sdkVersion(): Promise<string> {
+    return MsalNative.sdkVersion();
   }
 }

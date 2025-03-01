@@ -170,7 +170,7 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     
     NSDictionary *webConfigParameters = [RCTConvert NSDictionary:config[@"webParameters"]];
     
-    MSALWebviewParameters *webParameters = [strongSelf getWebViewParamaters:config viewController:viewController];
+    MSALWebviewParameters *webParameters = [strongSelf getWebViewParamaters:webConfigParameters viewController:viewController];
     
     //  scopes
     NSArray<NSString *> *scopes = [RCTConvert NSStringArray:config[@"scopes"]];
@@ -446,6 +446,23 @@ RCT_EXPORT_METHOD(setBrokerAvailability:(nonnull NSString *)type) {
     MSALGlobalConfig.brokerAvailability = MSALBrokeredAvailabilityNone;
   }
 }
+
+// MARK: - Device Information
+RCT_EXPORT_METHOD(isCompatibleAADBrokerAvailable:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  BOOL isCompatible = [_application isCompatibleAADBrokerAvailable];
+  resolve(@(isCompatible));
+}
+
+
+RCT_EXPORT_METHOD(sdkVersion:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  resolve([MSALPublicClientApplication sdkVersion]);
+}
+
 
 
 #ifdef RCT_NEW_ARCH_ENABLED

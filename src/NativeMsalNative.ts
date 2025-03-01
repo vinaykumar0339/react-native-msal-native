@@ -20,6 +20,10 @@ export interface Spec extends TurboModule {
   removeAccount(config: { [key: string]: string }): Promise<boolean>;
   signOut(config: { [key: string]: string }): Promise<void>;
   setBrokerAvailability(type: 'auto' | 'none'): void;
+
+  // Device Information
+  isCompatibleAADBrokerAvailable(): Promise<boolean>;
+  sdkVersion(): Promise<string>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('MsalNative');

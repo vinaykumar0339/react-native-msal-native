@@ -1,5 +1,8 @@
 import { View, StyleSheet, Button, Alert } from 'react-native';
-import { PublicClientApplication } from 'react-native-msal-native';
+import {
+  MSALGlobalConfig,
+  PublicClientApplication,
+} from 'react-native-msal-native';
 
 export default function App() {
   const showErrorAlert = (error: any) => {
@@ -102,8 +105,27 @@ export default function App() {
     }
   };
 
-  const setBrokerAvailability = async () => {
-    PublicClientApplication.instance().setBrokerAvailability('auto');
+  const setBrokerAvailability = () => {
+    MSALGlobalConfig.setBrokerAvailability('auto');
+  };
+
+  const sdkVersion = async () => {
+    try {
+      const success = await PublicClientApplication.sdkVersion();
+      console.log(success, 'sdkVersion');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
+  const isCompatibleAADBrokerAvailable = async () => {
+    try {
+      const success =
+        await PublicClientApplication.instance().isCompatibleAADBrokerAvailable();
+      console.log(success, 'isCompatibleAADBrokerAvailable');
+    } catch (error) {
+      showErrorAlert(error);
+    }
   };
 
   return (
@@ -119,6 +141,11 @@ export default function App() {
       <Button onPress={removeAccount} title="Remove Account" />
       <Button onPress={signOut} title="Sign Out" />
       <Button onPress={setBrokerAvailability} title="Set Broker Availability" />
+      <Button
+        onPress={isCompatibleAADBrokerAvailable}
+        title="Is Compatible AAD Broker Available"
+      />
+      <Button onPress={sdkVersion} title="SDK Version" />
     </View>
   );
 }
