@@ -170,11 +170,107 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
   });
 }
 
+RCT_EXPORT_METHOD(acquireTokenSilent:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  __weak MsalNative *weakSelf = self;
+  
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong MsalNative *strongSelf = weakSelf;
+    if (!strongSelf) return;
+    
+    // get the account
+    NSString *identifier = [RCTConvert NSString:config[@"identifier"]];
+    NSString *username = [RCTConvert NSString:config[@"username"]];
+    NSError *accountError = nil;
+    MSALAccount *account = nil;
+    if (identifier) {
+      account = [strongSelf->_application accountForIdentifier:identifier error:&accountError];
+      if (accountError) {
+        reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For identifier: %@", identifier], accountError);
+        return;
+      }
+    } else if (username) {
+      account = [strongSelf->_application accountForUsername:username error:&accountError];
+      if (accountError) {
+        reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For username: %@", username], accountError);
+        return;
+      }
+    } else {
+      reject(@"MISSING_PARAMTER_ERROR", @"Please provide identifier or username", nil);
+      return;
+    }
+    
+    if (!account) {
+      reject(@"ACCOUNT_NOT_FOUND_ERROR", @"Account not found. If this occurs multiple times despite being certain the account exists, try acquiring the token interactively.", accountError);
+      return;
+    }
+    
+    UIViewController *viewController = RCTPresentedViewController();
+    if (!viewController) {
+      reject(@"VIEW_CONTROLLER_NOT_FOUND_ERROR", @"View Controller not found to present a login screen", nil);
+      return;
+    }
+    
+    MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
+    //  presentationStyle
+    NSString* presentationStyle = [RCTConvert NSString:config[@"presentationStyle"]];
+    if (presentationStyle) {
+      webParameters.presentationStyle = [MsalNativeHelper getPresentationStyle:presentationStyle];
+    }
+    //  prefersEphemeralWebBrowserSession
+    BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:config[@"prefersEphemeralWebBrowserSession"]];
+    webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+    
+    //  webviewType
+    NSString* webviewType = [RCTConvert NSString:config[@"webviewType"]];
+    if (webviewType) {
+      webParameters.webviewType = [MsalNativeHelper getWebViewType:webviewType];
+    }
+    
+    //  scopes
+    NSArray<NSString *> *scopes = [RCTConvert NSStringArray:config[@"scopes"]];
+    
+    MSALSilentTokenParameters *silentParams = [[MSALSilentTokenParameters alloc] initWithScopes:scopes account:account];
+    
+    //  extraQueryParameters
+    NSDictionary* extraQueryParameters = [RCTConvert NSDictionary:config[@"extraQueryParameters"]];
+    if (extraQueryParameters) {
+      silentParams.extraQueryParameters = extraQueryParameters;
+    }
+    
+    // forceRefresh
+    BOOL forceRefresh = [RCTConvert BOOL:config[@"forceRefresh"]];
+    silentParams.forceRefresh = forceRefresh;
+    
+    // allowUsingLocalCachedRtWhenSsoExtFailed
+    BOOL allowUsingLocalCachedRtWhenSsoExtFailed = [RCTConvert BOOL:config[@"allowUsingLocalCachedRtWhenSsoExtFailed"]];
+    silentParams.allowUsingLocalCachedRtWhenSsoExtFailed = allowUsingLocalCachedRtWhenSsoExtFailed;
+    
+    // authenticationScheme
+    NSDictionary* authenticationScheme = [RCTConvert NSDictionary:config[@"authenticationScheme"]];
+    if (authenticationScheme) {
+      silentParams.authenticationScheme = [MsalNativeHelper authenticationSchemeFromConfig:authenticationScheme];
+    }
+    
+    [strongSelf->_application acquireTokenSilentWithParameters:silentParams completionBlock:^(MSALResult * _Nullable result, NSError * _Nullable error) {
+      if (error) {
+        reject(@"ACQUIRE_TOKEN_ERROR", @"Error While getting token. For more info check the userinfo object", error);
+      } else {
+        resolve([MsalModalHelper convertMsalResultToDictionary:result]);
+      }
+    }];
+  });
+    
+}
+
 RCT_EXPORT_METHOD(cancelCurrentWebAuthSession:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
   BOOL cancelled = [MSALPublicClientApplication cancelCurrentWebAuthSession];
   resolve(@(cancelled));
 }
-
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

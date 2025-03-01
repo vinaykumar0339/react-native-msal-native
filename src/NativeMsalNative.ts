@@ -8,6 +8,9 @@ export interface Spec extends TurboModule {
   acquireToken(config: {
     [key: string]: string;
   }): Promise<{ [key: string]: string }>;
+  acquireTokenSilent(config: {
+    [key: string]: string;
+  }): Promise<{ [key: string]: string }>;
   cancelCurrentWebAuthSession(): Promise<boolean>;
 }
 

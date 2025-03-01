@@ -186,7 +186,7 @@ export type AuthenticationScheme =
   | AuthenticationBearerScheme
   | AuthenticationPopScheme;
 
-export type AcquireTokenConfigIOS = {
+export type AcquireTokenCommonConfigIOS = {
   /**
    * Permissions you want included in the access token received in the result in the completionBlock.
    * Not all scopes are guaranteed to be included in the access token returned.
@@ -196,6 +196,14 @@ export type AcquireTokenConfigIOS = {
    * Key-value pairs to pass to the /authorize and /token endpoints. This should not be url-encoded value.
    */
   extraQueryParameters?: Record<string, string>;
+  /**
+   * Used to specify query parameters that must be passed to both the authorize and token endpoints to target MSAL at a specific test slice & flight.
+   * These apply to all requests made by an application.
+   */
+  authenticationScheme?: AuthenticationScheme;
+};
+
+export type AcquireInteractiveTokenConfigIOS = {
   /**
    * Permissions you want the account to consent to in the same authentication flow, but won’t be included in the returned access token.
    */
@@ -213,17 +221,41 @@ export type AcquireTokenConfigIOS = {
    * A copy of the configuration which was provided in the initializer.
    */
   webParameters?: WebParameters;
+} & AcquireTokenCommonConfigIOS;
+
+export type AcquireSilentTokenConfigIOS = {
   /**
-   * Used to specify query parameters that must be passed to both the authorize and token endpoints to target MSAL at a specific test slice & flight.
-   * These apply to all requests made by an application.
+   * The displayable value in UserPrincipleName(UPN) format
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
    */
-  authenticationScheme?: AuthenticationScheme;
-};
+  username?: string;
+  /**
+   * The unique identifier for the account.
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
+   */
+  identifier?: string;
+  /**
+   * Ignore any existing access token in the cache and force MSAL to get a new access token from the service.
+   */
+  forceRefresh?: boolean;
+  /**
+   * 1. When Sso Extension is presenting on the device Default is YES.
+   *    when Sso Extension failed to return a (new) access token, tries with existing refresh token in the cache, and return results.
+   *    If set to NO, when Sso Extension failed to return a (new) access token, ignores existing refresh token in local cahce, and return Sso Extension error.
+   * 2. When Sso Extension is not presenting on the device This parameter is ignored, and tries with existing refresh token in the cache.
+   */
+  allowUsingLocalCachedRtWhenSsoExtFailed?: boolean;
+} & AcquireTokenCommonConfigIOS;
 
 export type AcquireTokenConfigAndroid = {};
 
-export type AcquireTokenConfig = {
-  ios?: AcquireTokenConfigIOS;
+export type AcquireInteractiveTokenConfig = {
+  ios?: AcquireInteractiveTokenConfigIOS;
+  android?: AcquireTokenConfigAndroid;
+};
+
+export type AcquireSilentTokenConfig = {
+  ios?: AcquireSilentTokenConfigIOS;
   android?: AcquireTokenConfigAndroid;
 };
 

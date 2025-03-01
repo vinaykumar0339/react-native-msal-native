@@ -1,5 +1,6 @@
 import type {
-  AcquireTokenConfig,
+  AcquireInteractiveTokenConfig,
+  AcquireSilentTokenConfig,
   MSALNativeResult,
   PublicClientApplicationConfig,
 } from './types';
@@ -10,7 +11,12 @@ interface IPublicClientApplication {
   createPublicClientApplication(
     config: PublicClientApplicationConfig
   ): Promise<string>;
-  acquireToken(config?: AcquireTokenConfig): Promise<MSALNativeResult>;
+  acquireToken(
+    config?: AcquireInteractiveTokenConfig
+  ): Promise<MSALNativeResult>;
+  acquireTokenSilent(
+    config?: AcquireSilentTokenConfig
+  ): Promise<MSALNativeResult>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -35,13 +41,29 @@ export class PublicClientApplication implements IPublicClientApplication {
   }
 
   // need to change the type of config
-  acquireToken(config?: AcquireTokenConfig): Promise<MSALNativeResult> {
+  acquireToken(
+    config?: AcquireInteractiveTokenConfig
+  ): Promise<MSALNativeResult> {
     const platformConfig =
       Platform.OS === 'ios' ? config?.ios : config?.android;
     if (config && !platformConfig) {
       throw new Error(`please provide the config for ${Platform.OS}`);
     }
     return MsalNative.acquireToken(
+      platformConfig ?? {}
+    ) as unknown as Promise<MSALNativeResult>;
+  }
+
+  // need to change the type of config
+  acquireTokenSilent(
+    config?: AcquireSilentTokenConfig
+  ): Promise<MSALNativeResult> {
+    const platformConfig =
+      Platform.OS === 'ios' ? config?.ios : config?.android;
+    if (config && !platformConfig) {
+      throw new Error(`please provide the config for ${Platform.OS}`);
+    }
+    return MsalNative.acquireTokenSilent(
       platformConfig ?? {}
     ) as unknown as Promise<MSALNativeResult>;
   }

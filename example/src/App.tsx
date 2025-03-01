@@ -40,6 +40,22 @@ export default function App() {
     }
   };
 
+  const acquireTokenSilently = async () => {
+    try {
+      const success =
+        await PublicClientApplication.instance().acquireTokenSilent({
+          ios: {
+            username: 'vinay.kumar@vymo072.onmicrosoft.com',
+            // identifier:
+            //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+          },
+        });
+      console.log(success, 'success');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -47,6 +63,7 @@ export default function App() {
         title="Create Public Client Application"
       />
       <Button onPress={acquireToken} title="Acquire Token" />
+      <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
     </View>
   );
 }
