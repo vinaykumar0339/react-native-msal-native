@@ -127,20 +127,97 @@ export type WebParameters = {
    * A specific webView type for the interactive authentication flow. By default, it will be set to MSALGlobalConfig.defaultWebviewType.
    */
   webviewType?:
-    | 'default'
+    | /**
+     * For iOS 11 and up, uses AuthenticationSession (ASWebAuthenticationSession or SFAuthenticationSession).
+     * For older versions, with AuthenticationSession not being available, uses SafariViewController.
+     * For macOS 10.15 and above uses ASWebAuthenticationSession For older macOS versions uses WKWebView
+     */
+    'default'
+    /**
+     * Use ASWebAuthenticationSession where available.
+     * On older iOS versions uses SFAuthenticationSession Doesn’t allow any other webview type, so if either of these are not present, fails the request
+     */
     | 'authentication_session'
-    // Don't use 'wk_webview' this one not yet supported
+    /**
+     * Use WKWebView.
+     * Don't use 'wk_webview' this one not yet supported (not officially supported by this react native library.)
+     */
     | 'wk_webview'
+    /**
+     * Use SFSafariViewController for all versions.
+     */
     | 'safari_view_controller';
 };
 
+export type AuthenticationBearerScheme = {
+  /**
+   * Authentication Scheme to access the resource
+   */
+  scheme: 'bearer';
+};
+
+export type AuthenticationPopScheme = {
+  /**
+   * Authentication Scheme to access the resource
+   */
+  scheme: 'pop';
+  /**
+   * HTTP Method for the request
+   */
+  httpMethod:
+    | 'HEAD'
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'CONNECT'
+    | 'OPTIONS'
+    | 'TRACE'
+    | 'PATCH';
+  /**
+   * URL of the resource being accessed
+   */
+  requestUrl?: string;
+  nonce?: string;
+  additionalParameters?: Record<string, string>;
+};
+
+export type AuthenticationScheme =
+  | AuthenticationBearerScheme
+  | AuthenticationPopScheme;
+
 export type AcquireTokenConfigIOS = {
+  /**
+   * Permissions you want included in the access token received in the result in the completionBlock.
+   * Not all scopes are guaranteed to be included in the access token returned.
+   */
   scopes?: string[];
+  /**
+   * Key-value pairs to pass to the /authorize and /token endpoints. This should not be url-encoded value.
+   */
   extraQueryParameters?: Record<string, string>;
+  /**
+   * Permissions you want the account to consent to in the same authentication flow, but won’t be included in the returned access token.
+   */
   extraScopesToConsent?: string[];
+  /**
+   * A specific prompt type for the interactive authentication flow.
+   */
   promptType?: PromptType;
+  /**
+   * A loginHint (usually an email) to pass to the service at the beginning of the interactive authentication flow.
+   * The account returned in the completion block is not guaranteed to match the loginHint.
+   */
   loginHint?: string;
+  /**
+   * A copy of the configuration which was provided in the initializer.
+   */
   webParameters?: WebParameters;
+  /**
+   * Used to specify query parameters that must be passed to both the authorize and token endpoints to target MSAL at a specific test slice & flight.
+   * These apply to all requests made by an application.
+   */
+  authenticationScheme?: AuthenticationScheme;
 };
 
 export type AcquireTokenConfigAndroid = {};
@@ -175,15 +252,46 @@ export type MSALNativeAccountId = {
 };
 
 export type MSALNativeResult = {
+  /**
+   * The Access Token requested. Note that if access token is not returned in token response, this property will be returned as an empty string.
+   */
   accessToken: string;
+  /**
+   * The time that the access token returned in the Token property ceases to be valid.
+   * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the service
+   */
   expiresOn: number; // timestamp in milliseconds
+  /**
+   * Some access tokens have extended lifetime when server is in an unavailable state.
+   * This property indicates whether the access token is returned in such a state.
+   */
   extendedLifeTimeToken: boolean;
+  /**
+   * The raw id token if it’s returned by the service or nil if no id token is returned.
+   */
   idToken: string;
+  /**
+   * The scope values returned from the service.
+   */
   scopes: string[];
   tenantProfile: MSALNativeTenantProfile;
   account: MSALNativeAccount;
+  /**
+   * Represents the authority used for getting the token from STS and caching it.
+   * This authority should be used for subsequent silent requests.
+   * It might be different from the authority provided by developer (e.g. for sovereign cloud scenarios).
+   */
   authority: string;
+  /**
+   * The correlation ID of the request.
+   */
   correlationId: string;
+  /**
+   * The authorization header for the specific authentication scheme . For instance “Bearer …” or “Pop …”.
+   */
   authorizationHeader: string;
+  /**
+   * The authentication scheme for the tokens issued. For instance “Bearer ” or “Pop”.
+   */
   authenticationScheme: string;
 };

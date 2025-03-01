@@ -93,6 +93,15 @@ RCT_EXPORT_MODULE()
   return [msalAuthorities copy]; // Return an immutable NSArray
 }
 
+- (id<MSALAuthenticationSchemeProtocol>)getAuthenticationScheme:(NSString *)scheme {
+  if ([scheme isEqualToString:@"Bearer"]) {
+    return [[MSALAuthenticationSchemeBearer alloc] init];
+  } else if ([scheme isEqualToString:@"Pop"]) {
+    [MSALAuthenticationSchemePop alloc];
+  }
+  return nil; // Return nil if no matching scheme is found
+}
+
 // MARK: React Native Export Methods
 RCT_EXPORT_METHOD(multiply:(double)a
                   b:(double)b
@@ -241,6 +250,12 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     NSString* promptType = [RCTConvert NSString:config[@"promptType"]];
     if (promptType) {
       interactiveParams.promptType = [strongSelf getPromptType:promptType];
+    }
+    
+    // authenticationScheme
+    NSDictionary* authenticationScheme = [RCTConvert NSDictionary:config[@"authenticationScheme"]];
+    if (authenticationScheme) {
+      interactiveParams.authenticationScheme = [MsalNativeHelper authenticationSchemeFromConfig:authenticationScheme];
     }
     
     [strongSelf->_application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult * _Nullable result, NSError * _Nullable error) {

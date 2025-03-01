@@ -24,3 +24,7 @@ extern NSString *const UIModalPresentationStyleOverFullScreen;
 extern NSString *const UIModalPresentationStylePopOver;
 extern NSString *const UIModalPresentationStyleNone;
 extern NSString *const UIModalPresentationStyleAutomatic;
+
+// MSALAuthScheme
+extern NSString *const AuthSchemeBearer;
+extern NSString *const AuthSchemePop;
