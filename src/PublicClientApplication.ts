@@ -1,4 +1,8 @@
-import type { MSALNativeResult, PublicClientApplicationConfig } from './types';
+import type {
+  AcquireTokenConfig,
+  MSALNativeResult,
+  PublicClientApplicationConfig,
+} from './types';
 import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
 
@@ -6,7 +10,7 @@ interface IPublicClientApplication {
   createPublicClientApplication(
     config: PublicClientApplicationConfig
   ): Promise<string>;
-  acquireToken(config?: { [key: string]: any }): Promise<MSALNativeResult>;
+  acquireToken(config?: AcquireTokenConfig): Promise<MSALNativeResult>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -25,15 +29,20 @@ export class PublicClientApplication implements IPublicClientApplication {
   ): Promise<string> {
     const platformConfig = Platform.OS === 'ios' ? config.ios : config.android;
     if (!platformConfig) {
-      throw new Error('please provide the config not found');
+      throw new Error(`please provide the config for ${Platform.OS}`);
     }
     return MsalNative.createPublicClientApplication(platformConfig);
   }
 
   // need to change the type of config
-  acquireToken(config?: { [key: string]: any }): Promise<MSALNativeResult> {
+  acquireToken(config?: AcquireTokenConfig): Promise<MSALNativeResult> {
+    const platformConfig =
+      Platform.OS === 'ios' ? config?.ios : config?.android;
+    if (config && !platformConfig) {
+      throw new Error(`please provide the config for ${Platform.OS}`);
+    }
     return MsalNative.acquireToken(
-      config ?? {}
+      platformConfig ?? {}
     ) as unknown as Promise<MSALNativeResult>;
   }
 }

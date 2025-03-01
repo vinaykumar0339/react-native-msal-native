@@ -7,7 +7,7 @@ export interface Spec extends TurboModule {
     [key: string]: string;
   }): Promise<string>;
   acquireToken(config: {
-    [key: string]: any;
+    [key: string]: string;
   }): Promise<{ [key: string]: string }>;
 }
 

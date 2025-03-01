@@ -29,7 +29,11 @@ export default function App() {
 
   const acquireToken = async () => {
     try {
-      const success = await PublicClientApplication.instance().acquireToken();
+      const success = await PublicClientApplication.instance().acquireToken({
+        ios: {
+          promptType: 'select_account',
+        },
+      });
       console.log(success, 'success');
     } catch (error) {
       showErrorAlert(error);

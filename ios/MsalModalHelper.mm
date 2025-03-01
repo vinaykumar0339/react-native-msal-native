@@ -1,7 +1,8 @@
-#import "MsalResultHelper.h"
+#import "MsalModalHelper.h"
 #import "MsalNativeHelper.h"
+#import <React/RCTConvert.h>
 
-@implementation MsalResultHelper
+@implementation MsalModalHelper
 
 + (NSDictionary *)convertMsalResultToDictionary:(MSALResult * _Nonnull)result {
   NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
@@ -9,7 +10,6 @@
   dictionary[@"accessToken"] = result.accessToken ?: @"";
   dictionary[@"expiresOn"] = result.expiresOn ? @([result.expiresOn timeIntervalSince1970] * 1000) : [NSNull null];
   dictionary[@"extendedLifeTimeToken"] = @(result.extendedLifeTimeToken);
-  dictionary[@"tenantId"] = result.tenantId;
   dictionary[@"idToken"] = result.idToken ?: @"";
   dictionary[@"scopes"] = result.scopes ?: @[];
   
@@ -22,7 +22,6 @@
     dictionary[@"account"] = [self convertMsalAccountToDictionary:result.account];
   }
   
-  dictionary[@"uniqueId"] = result.uniqueId ?: @"";
   dictionary[@"authority"] = result.authority.url.absoluteString ?: @"";
   dictionary[@"correlationId"] = result.correlationId.UUIDString ?: [NSNull null];
   dictionary[@"authorizationHeader"] = result.authorizationHeader ?: @"";
@@ -74,7 +73,7 @@
   accountDict[@"isSSOAccount"] = @(account.isSSOAccount);
   
   if (account.tenantProfiles) {
-    accountDict[@"tenantProfiles"] = [MsalResultHelper convertMsalTenantProfilesToDictionaries:account.tenantProfiles];
+    accountDict[@"tenantProfiles"] = [MsalModalHelper convertMsalTenantProfilesToDictionaries:account.tenantProfiles];
   }
   
   return accountDict;
@@ -110,5 +109,22 @@
   
   return profileDict;
 }
+
++ (MSALSliceConfig * _Nonnull)convertConfigIntoSliceConfig:(NSDictionary * _Nullable)config {
+  MSALSliceConfig *sliceConfig = [MSALSliceConfig init];
+  NSString *slice = [RCTConvert NSString:config[@"slice"]];
+  if (slice) {
+    sliceConfig.slice = slice;
+  }
+
+  NSString *dc = [RCTConvert NSString:config[@"dc"]];
+  if (dc) {
+    sliceConfig.dc = dc;
+  }
+  
+  return sliceConfig;
+}
+
+
 
 @end
