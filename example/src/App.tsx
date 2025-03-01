@@ -65,6 +65,19 @@ export default function App() {
     }
   };
 
+  const removeAccount = async () => {
+    try {
+      const success = await PublicClientApplication.instance().removeAccount({
+        username: 'vinay.kumar@vymo072.onmicrosoft.com',
+        // identifier:
+        //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+      });
+      console.log(success, 'removeAccount');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -74,6 +87,7 @@ export default function App() {
       <Button onPress={acquireToken} title="Acquire Token" />
       <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
       <Button onPress={allAccounts} title="Get All Accounts" />
+      <Button onPress={removeAccount} title="Remove Account" />
     </View>
   );
 }

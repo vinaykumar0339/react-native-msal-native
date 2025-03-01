@@ -327,3 +327,16 @@ export type MSALNativeResult = {
    */
   authenticationScheme: string;
 };
+
+export type RemoveAccountConfig = {
+  /**
+   * The displayable value in UserPrincipleName(UPN) format
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
+   */
+  username?: string;
+  /**
+   * The unique identifier for the account.
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
+   */
+  identifier?: string;
+};

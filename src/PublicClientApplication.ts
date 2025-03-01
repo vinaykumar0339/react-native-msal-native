@@ -3,6 +3,7 @@ import type {
   AcquireSilentTokenConfig,
   MSALNativeResult,
   PublicClientApplicationConfig,
+  RemoveAccountConfig,
 } from './types';
 import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
@@ -18,6 +19,7 @@ interface IPublicClientApplication {
     config?: AcquireSilentTokenConfig
   ): Promise<MSALNativeResult>;
   allAccounts(): Promise<MSALNativeResult[]>;
+  removeAccount(config: RemoveAccountConfig): Promise<boolean>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -75,5 +77,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 
   allAccounts(): Promise<MSALNativeResult[]> {
     return MsalNative.allAccounts() as unknown as Promise<MSALNativeResult[]>;
+  }
+
+  removeAccount(config: RemoveAccountConfig): Promise<boolean> {
+    return MsalNative.removeAccount(config);
   }
 }

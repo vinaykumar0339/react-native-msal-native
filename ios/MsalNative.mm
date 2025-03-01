@@ -288,6 +288,48 @@ RCT_EXPORT_METHOD(allAccounts:(nonnull RCTPromiseResolveBlock)resolve reject:(no
   }
 }
 
+RCT_EXPORT_METHOD(removeAccount:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  // get the account
+  NSString *identifier = [RCTConvert NSString:config[@"identifier"]];
+  NSString *username = [RCTConvert NSString:config[@"username"]];
+  NSError *accountError = nil;
+  MSALAccount *account = nil;
+  if (identifier) {
+    account = [self->_application accountForIdentifier:identifier error:&accountError];
+    if (accountError) {
+      reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For identifier: %@", identifier], accountError);
+      return;
+    }
+  } else if (username) {
+    account = [self->_application accountForUsername:username error:&accountError];
+    if (accountError) {
+      reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For username: %@", username], accountError);
+      return;
+    }
+  } else {
+    reject(@"MISSING_PARAMTER_ERROR", @"Please provide identifier or username", nil);
+    return;
+  }
+  
+  if (!account) {
+    reject(@"ACCOUNT_NOT_FOUND_ERROR", @"Account not found. If this occurs multiple times despite being certain the account exists, try acquiring the token interactively.", accountError);
+    return;
+  }
+  
+  NSError *accountRemoveError = nil;
+  bool removedSuccessfully = [self.application removeAccount:account error:&accountRemoveError];
+  
+  if (accountRemoveError) {
+    reject(@"ERROR_ACCOUNT_REMOVE", @"Error Removing Account", accountRemoveError);
+  } else {
+    resolve(@(removedSuccessfully));
+  }
+}
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
