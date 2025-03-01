@@ -29,7 +29,6 @@ interface IPublicClientApplication {
 
   // Device Information
   isCompatibleAADBrokerAvailable(): Promise<boolean>;
-  sdkVersion(): Promise<string>;
 }
 
 abstract class APublicClientApplication {
