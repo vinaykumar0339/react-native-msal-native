@@ -95,4 +95,95 @@
   return [MSALAuthenticationSchemeBearer init];
 }
 
++(MSALPromptType)getPromptType:(nonnull NSString *)type {
+  MSALPromptType msalPromptType = MSALPromptTypeDefault;
+  
+  if ([type isEqualToString:PromptTypeSelectAccount]) {
+    msalPromptType = MSALPromptTypeSelectAccount;
+  } else if ([type isEqualToString:PromptTypeLogin]) {
+    msalPromptType = MSALPromptTypeLogin;
+  } else if ([type isEqualToString:PromptTypeConsent]) {
+    msalPromptType = MSALPromptTypeConsent;
+  } else if ([type isEqualToString:PromptTypePromptIfNecessary]) {
+    msalPromptType = MSALPromptTypePromptIfNecessary;
+  } else if ([type isEqualToString:PromptTypeDefault]) {
+    msalPromptType = MSALPromptTypeDefault;
+  }
+  
+  return msalPromptType;
+}
+
++(UIModalPresentationStyle)getPresentationStyle:(nonnull NSString *)style {
+  UIModalPresentationStyle presentationStyle = UIModalPresentationPageSheet;
+  
+  if ([style isEqualToString:UIModalPresentationStyleFullScreen]) {
+    presentationStyle = UIModalPresentationFullScreen;
+  } else if ([style isEqualToString:UIModalPresentationStylePageSheet]) {
+    presentationStyle = UIModalPresentationPageSheet;
+  } else if ([style isEqualToString:UIModalPresentationStyleFormSheet]) {
+    presentationStyle = UIModalPresentationFormSheet;
+  } else if ([style isEqualToString:UIModalPresentationStyleCurrentContext]) {
+    presentationStyle = UIModalPresentationCurrentContext;
+  } else if ([style isEqualToString:UIModalPresentationStyleCustom]) {
+    presentationStyle = UIModalPresentationCustom;
+  } else if ([style isEqualToString:UIModalPresentationStyleOverFullScreen]) {
+    presentationStyle = UIModalPresentationOverFullScreen;
+  } else if ([style isEqualToString:UIModalPresentationStylePopOver]) {
+    presentationStyle = UIModalPresentationPopover;
+  } else if ([style isEqualToString:UIModalPresentationStyleNone]) {
+    presentationStyle = UIModalPresentationNone;
+  } else if ([style isEqualToString:UIModalPresentationStyleAutomatic]) {
+    presentationStyle = UIModalPresentationAutomatic;
+  }
+  
+  return presentationStyle;
+}
+
++(MSALWebviewType)getWebViewType:(nonnull NSString *)type {
+  MSALWebviewType webviewType = MSALWebviewTypeDefault;
+  
+  if ([type isEqualToString:WebViewTypeDefault]) {
+    webviewType = MSALWebviewTypeDefault;
+  } else if ([type isEqualToString:WebviewTypeAuthenticationSession]) {
+    webviewType = MSALWebviewTypeAuthenticationSession;
+  } else if ([type isEqualToString:WebviewTypeSafariViewController]) {
+    webviewType = MSALWebviewTypeSafariViewController;
+  } else if ([type isEqualToString:WebviewTypeWKWebView]) {
+    webviewType = MSALWebviewTypeWKWebView;
+  }
+  
+  return webviewType;
+}
+
++ (NSArray<MSALAuthority *> * _Nullable)getKnownAuthorities:(NSArray<NSString *> *)knownAuthorities
+                                                      error:(NSError * _Nullable __autoreleasing * _Nullable)error
+                                            failedAuthority:(NSString * _Nullable __autoreleasing * _Nullable)failedAuthority {
+  NSMutableArray<MSALAuthority *> *msalAuthorities = [NSMutableArray array];
+  
+  for (NSString *authorityString in knownAuthorities) {
+    NSURL *authorityURL = [NSURL URLWithString:authorityString];
+    MSALAuthority *authority = [MSALAuthority authorityWithURL:authorityURL error:error];
+    
+    if (*error) { // If an error occurs, return nil immediately
+      if (failedAuthority) {
+        *failedAuthority = authorityString; // Capture the failing authority
+      }
+      return nil;
+    }
+    
+    [msalAuthorities addObject:authority];
+  }
+  
+  return [msalAuthorities copy]; // Return an immutable NSArray
+}
+
++(id<MSALAuthenticationSchemeProtocol>)getAuthenticationScheme:(NSString *)scheme {
+  if ([scheme isEqualToString:@"Bearer"]) {
+    return [[MSALAuthenticationSchemeBearer alloc] init];
+  } else if ([scheme isEqualToString:@"Pop"]) {
+    [MSALAuthenticationSchemePop alloc];
+  }
+  return nil; // Return nil if no matching scheme is found
+}
+
 @end

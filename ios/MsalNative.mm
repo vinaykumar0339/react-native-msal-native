@@ -11,97 +11,6 @@
 
 RCT_EXPORT_MODULE()
 
--(MSALPromptType)getPromptType:(nonnull NSString *)type {
-  MSALPromptType msalPromptType = MSALPromptTypeDefault;
-  
-  if ([type isEqualToString:PromptTypeSelectAccount]) {
-    msalPromptType = MSALPromptTypeSelectAccount;
-  } else if ([type isEqualToString:PromptTypeLogin]) {
-    msalPromptType = MSALPromptTypeLogin;
-  } else if ([type isEqualToString:PromptTypeConsent]) {
-    msalPromptType = MSALPromptTypeConsent;
-  } else if ([type isEqualToString:PromptTypePromptIfNecessary]) {
-    msalPromptType = MSALPromptTypePromptIfNecessary;
-  } else if ([type isEqualToString:PromptTypeDefault]) {
-    msalPromptType = MSALPromptTypeDefault;
-  }
-  
-  return msalPromptType;
-}
-
--(UIModalPresentationStyle)getPresentationStyle:(nonnull NSString *)style {
-  UIModalPresentationStyle presentationStyle = UIModalPresentationPageSheet;
-  
-  if ([style isEqualToString:UIModalPresentationStyleFullScreen]) {
-    presentationStyle = UIModalPresentationFullScreen;
-  } else if ([style isEqualToString:UIModalPresentationStylePageSheet]) {
-    presentationStyle = UIModalPresentationPageSheet;
-  } else if ([style isEqualToString:UIModalPresentationStyleFormSheet]) {
-    presentationStyle = UIModalPresentationFormSheet;
-  } else if ([style isEqualToString:UIModalPresentationStyleCurrentContext]) {
-    presentationStyle = UIModalPresentationCurrentContext;
-  } else if ([style isEqualToString:UIModalPresentationStyleCustom]) {
-    presentationStyle = UIModalPresentationCustom;
-  } else if ([style isEqualToString:UIModalPresentationStyleOverFullScreen]) {
-    presentationStyle = UIModalPresentationOverFullScreen;
-  } else if ([style isEqualToString:UIModalPresentationStylePopOver]) {
-    presentationStyle = UIModalPresentationPopover;
-  } else if ([style isEqualToString:UIModalPresentationStyleNone]) {
-    presentationStyle = UIModalPresentationNone;
-  } else if ([style isEqualToString:UIModalPresentationStyleAutomatic]) {
-    presentationStyle = UIModalPresentationAutomatic;
-  }
-  
-  return presentationStyle;
-}
-
--(MSALWebviewType)getWebViewType:(nonnull NSString *)type {
-  MSALWebviewType webviewType = MSALWebviewTypeDefault;
-  
-  if ([type isEqualToString:WebViewTypeDefault]) {
-    webviewType = MSALWebviewTypeDefault;
-  } else if ([type isEqualToString:WebviewTypeAuthenticationSession]) {
-    webviewType = MSALWebviewTypeAuthenticationSession;
-  } else if ([type isEqualToString:WebviewTypeSafariViewController]) {
-    webviewType = MSALWebviewTypeSafariViewController;
-  } else if ([type isEqualToString:WebviewTypeWKWebView]) {
-    webviewType = MSALWebviewTypeWKWebView;
-  }
-  
-  return webviewType;
-}
-
-- (NSArray<MSALAuthority *> * _Nullable)getKnownAuthorities:(NSArray<NSString *> *)knownAuthorities
-                                                      error:(NSError * _Nullable __autoreleasing * _Nullable)error
-                                            failedAuthority:(NSString * _Nullable __autoreleasing * _Nullable)failedAuthority {
-  NSMutableArray<MSALAuthority *> *msalAuthorities = [NSMutableArray array];
-  
-  for (NSString *authorityString in knownAuthorities) {
-    NSURL *authorityURL = [NSURL URLWithString:authorityString];
-    MSALAuthority *authority = [MSALAuthority authorityWithURL:authorityURL error:error];
-    
-    if (*error) { // If an error occurs, return nil immediately
-      if (failedAuthority) {
-        *failedAuthority = authorityString; // Capture the failing authority
-      }
-      return nil;
-    }
-    
-    [msalAuthorities addObject:authority];
-  }
-  
-  return [msalAuthorities copy]; // Return an immutable NSArray
-}
-
-- (id<MSALAuthenticationSchemeProtocol>)getAuthenticationScheme:(NSString *)scheme {
-  if ([scheme isEqualToString:@"Bearer"]) {
-    return [[MSALAuthenticationSchemeBearer alloc] init];
-  } else if ([scheme isEqualToString:@"Pop"]) {
-    [MSALAuthenticationSchemePop alloc];
-  }
-  return nil; // Return nil if no matching scheme is found
-}
-
 // MARK: React Native Export Methods
 RCT_EXPORT_METHOD(multiply:(double)a
                   b:(double)b
@@ -146,7 +55,7 @@ RCT_EXPORT_METHOD(createPublicClientApplication:(nonnull NSDictionary *)config r
   if (knownAuthorities) {
     NSError *authorityError = nil;
     NSString *failedAuthority = nil; // Track the failing authority
-    NSArray<MSALAuthority *> *msalAuthorities = [self getKnownAuthorities:knownAuthorities error:&authorityError failedAuthority:&failedAuthority];
+    NSArray<MSALAuthority *> *msalAuthorities = [MsalNativeHelper getKnownAuthorities:knownAuthorities error:&authorityError failedAuthority:&failedAuthority];
     
     if (authorityError) {
       reject(@"INVALID_AUTHORITY", [NSString stringWithFormat:@"Invalid authority URL: %@", failedAuthority], authorityError);
@@ -211,7 +120,7 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     //  presentationStyle
     NSString* presentationStyle = [RCTConvert NSString:config[@"presentationStyle"]];
     if (presentationStyle) {
-      webParameters.presentationStyle = [strongSelf getPresentationStyle:presentationStyle];
+      webParameters.presentationStyle = [MsalNativeHelper getPresentationStyle:presentationStyle];
     }
     //  prefersEphemeralWebBrowserSession
     BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:config[@"prefersEphemeralWebBrowserSession"]];
@@ -220,7 +129,7 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     //  webviewType
     NSString* webviewType = [RCTConvert NSString:config[@"webviewType"]];
     if (webviewType) {
-      webParameters.webviewType = [strongSelf getWebViewType:webviewType];
+      webParameters.webviewType = [MsalNativeHelper getWebViewType:webviewType];
     }
     
     //  scopes
@@ -249,7 +158,7 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
     // promptType
     NSString* promptType = [RCTConvert NSString:config[@"promptType"]];
     if (promptType) {
-      interactiveParams.promptType = [strongSelf getPromptType:promptType];
+      interactiveParams.promptType = [MsalNativeHelper getPromptType:promptType];
     }
     
     // authenticationScheme
