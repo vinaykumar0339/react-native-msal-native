@@ -1,6 +1,6 @@
 #import "MsalNative.h"
 #import "MsalNativeHelper.h"
-#import "MsalModalHelper.h"
+#import "MsalModelHelper.h"
 #import "MsalNativeConstants.h"
 
 @interface MsalNative ()
@@ -133,7 +133,7 @@ RCT_EXPORT_METHOD(createPublicClientApplication:(nonnull NSDictionary *)config r
   // sliceConfig
   NSDictionary* sliceConfig = [RCTConvert NSDictionary:config[@"sliceConfig"]];
   if (sliceConfig) {
-    msalConfig.sliceConfig = [MsalModalHelper convertConfigIntoSliceConfig:sliceConfig];
+    msalConfig.sliceConfig = [MsalModelHelper convertConfigIntoSliceConfig:sliceConfig];
   }
   
   // multipleCloudsSupported
@@ -211,7 +211,7 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
       if (error) {
         reject(@"ACQUIRE_TOKEN_ERROR", @"Error While getting token. For more info check the userinfo object", error);
       } else {
-        resolve([MsalModalHelper convertMsalResultToDictionary:result]);
+        resolve([MsalModelHelper convertMsalResultToDictionary:result]);
       }
     }];
   });
@@ -277,7 +277,7 @@ RCT_EXPORT_METHOD(acquireTokenSilent:(nonnull NSDictionary *)config resolve:(non
       if (error) {
         reject(@"ACQUIRE_TOKEN_ERROR", @"Error While getting token. For more info check the userinfo object", error);
       } else {
-        resolve([MsalModalHelper convertMsalResultToDictionary:result]);
+        resolve([MsalModelHelper convertMsalResultToDictionary:result]);
       }
     }];
   });
@@ -300,9 +300,49 @@ RCT_EXPORT_METHOD(allAccounts:(nonnull RCTPromiseResolveBlock)resolve reject:(no
   if (error) {
     reject(@"ERROR", @"Error While getting all accounts. For more info check the userinfo object", error);
   } else {
-    NSArray<NSDictionary *> *accounts = [MsalModalHelper convertMsalAccountsToDictionaries:allAccounts];
+    NSArray<NSDictionary *> *accounts = [MsalModelHelper convertMsalAccountsToDictionaries:allAccounts];
     resolve(accounts);
   }
+}
+
+RCT_EXPORT_METHOD(account:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  // get the account
+  NSDictionary* accountInfo = [self getAccountWithConfig:config];
+  MSALAccount* account = accountInfo[@"account"];
+
+  // if account not there it means we have an error
+  if (!account) {
+    NSString *errorCode = accountInfo[@"errorCode"];
+    NSString *errorMessage = accountInfo[@"errorMessage"];
+    NSError *error = accountInfo[@"error"];
+    reject(errorCode, errorMessage, error);
+  } else {
+    resolve(account);
+  }
+}
+
+RCT_EXPORT_METHOD(getCurrentAccount:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  MSALParameters *paramters = [[MSALParameters alloc] init];
+  [self->_application getCurrentAccountWithParameters:paramters completionBlock:^(MSALAccount * _Nullable_result account, MSALAccount * _Nullable_result previousAccount, NSError * _Nullable error) {
+    if (error) {
+      reject(@"CURRENT_ACCOUNT_ERROR", @"Error loading current account. for more information please check the userinfo object", error);
+    } else {
+      resolve(@{
+        @"account": [MsalModelHelper convertMsalAccountToDictionary:account],
+        @"previousAccount": [MsalModelHelper convertMsalAccountToDictionary:previousAccount]
+      });
+    }
+  }];
 }
 
 RCT_EXPORT_METHOD(removeAccount:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
@@ -398,7 +438,6 @@ RCT_EXPORT_METHOD(signOut:(nonnull NSDictionary *)config resolve:(nonnull RCTPro
     }];
   });
 }
-
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

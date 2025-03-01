@@ -92,6 +92,16 @@ export default function App() {
     }
   };
 
+  const getCurrentAccount = async () => {
+    try {
+      const success =
+        await PublicClientApplication.instance().getCurrentAccount();
+      console.log(success, 'getCurrentAccount');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -101,6 +111,7 @@ export default function App() {
       <Button onPress={acquireToken} title="Acquire Token" />
       <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
       <Button onPress={allAccounts} title="Get All Accounts" />
+      <Button onPress={getCurrentAccount} title="Get Current Account" />
       <Button onPress={removeAccount} title="Remove Account" />
       <Button onPress={signOut} title="Sign Out" />
     </View>

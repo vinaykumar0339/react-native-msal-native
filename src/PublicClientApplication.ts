@@ -3,8 +3,10 @@ import type {
   AcquireSilentTokenConfig,
   MSALNativeResult,
   PublicClientApplicationConfig,
-  RemoveAccountConfig,
+  AccountConfig,
   SignOutAccountConfig,
+  MSALNativeAccount,
+  CurrentAccountResponse,
 } from './types';
 import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
@@ -19,8 +21,10 @@ interface IPublicClientApplication {
   acquireTokenSilent(
     config?: AcquireSilentTokenConfig
   ): Promise<MSALNativeResult>;
-  allAccounts(): Promise<MSALNativeResult[]>;
-  removeAccount(config: RemoveAccountConfig): Promise<boolean>;
+  allAccounts(): Promise<MSALNativeAccount[]>;
+  account(config: AccountConfig): Promise<MSALNativeAccount>;
+  getCurrentAccount(): Promise<CurrentAccountResponse>;
+  removeAccount(config: AccountConfig): Promise<boolean>;
   singOut(config: SignOutAccountConfig): Promise<void>;
 }
 
@@ -77,11 +81,19 @@ export class PublicClientApplication implements IPublicClientApplication {
     ) as unknown as Promise<MSALNativeResult>;
   }
 
-  allAccounts(): Promise<MSALNativeResult[]> {
-    return MsalNative.allAccounts() as unknown as Promise<MSALNativeResult[]>;
+  allAccounts(): Promise<MSALNativeAccount[]> {
+    return MsalNative.allAccounts() as unknown as Promise<MSALNativeAccount[]>;
   }
 
-  removeAccount(config: RemoveAccountConfig): Promise<boolean> {
+  account(config: AccountConfig): Promise<MSALNativeAccount> {
+    return MsalNative.account(config) as unknown as Promise<MSALNativeAccount>;
+  }
+
+  getCurrentAccount(): Promise<CurrentAccountResponse> {
+    return MsalNative.getCurrentAccount() as unknown as Promise<CurrentAccountResponse>;
+  }
+
+  removeAccount(config: AccountConfig): Promise<boolean> {
     return MsalNative.removeAccount(config);
   }
 

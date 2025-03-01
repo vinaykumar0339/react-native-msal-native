@@ -328,7 +328,12 @@ export type MSALNativeResult = {
   authenticationScheme: string;
 };
 
-export type RemoveAccountConfig = {
+export type CurrentAccountResponse = {
+  account: MSALNativeAccount;
+  previousAccount: MSALNativeAccount;
+};
+
+export type AccountConfig = {
   /**
    * The displayable value in UserPrincipleName(UPN) format
    * NOTE: use either username or identifier, if both are provided, identifier will be used.
@@ -342,16 +347,6 @@ export type RemoveAccountConfig = {
 };
 
 export type SignOutAccountConfig = {
-  /**
-   * The displayable value in UserPrincipleName(UPN) format
-   * NOTE: use either username or identifier, if both are provided, identifier will be used.
-   */
-  username?: string;
-  /**
-   * The unique identifier for the account.
-   * NOTE: use either username or identifier, if both are provided, identifier will be used.
-   */
-  identifier?: string;
   /**
    * A copy of the configuration which was provided in the initializer.
    */
@@ -386,4 +381,4 @@ export type SignOutAccountConfig = {
    Key-value pairs to pass to the logout endpoint. This should not be url-encoded value.
   */
   extraQueryParameters?: Record<string, string>;
-};
+} & AccountConfig;

@@ -1,8 +1,8 @@
-#import "MsalModalHelper.h"
+#import "MsalModelHelper.h"
 #import "MsalNativeHelper.h"
 #import <React/RCTConvert.h>
 
-@implementation MsalModalHelper
+@implementation MsalModelHelper
 
 + (NSDictionary *)convertMsalResultToDictionary:(MSALResult * _Nonnull)result {
   NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
@@ -73,7 +73,7 @@
   accountDict[@"isSSOAccount"] = @(account.isSSOAccount);
   
   if (account.tenantProfiles) {
-    accountDict[@"tenantProfiles"] = [MsalModalHelper convertMsalTenantProfilesToDictionaries:account.tenantProfiles];
+    accountDict[@"tenantProfiles"] = [MsalModelHelper convertMsalTenantProfilesToDictionaries:account.tenantProfiles];
   }
   
   return accountDict;

@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <MSAL/MSAL.h>
 
-@interface MsalModalHelper : NSObject
+@interface MsalModelHelper : NSObject
 
 + (NSDictionary *_Nullable)convertMsalResultToDictionary:(MSALResult * _Nonnull)result;
 + (NSArray<NSDictionary *> *_Nullable)convertMsalTenantProfilesToDictionaries:(NSArray<MSALTenantProfile *> *_Nullable)tenantProfiles;
