@@ -26,6 +26,7 @@ interface IPublicClientApplication {
   getCurrentAccount(): Promise<CurrentAccountResponse>;
   removeAccount(config: AccountConfig): Promise<boolean>;
   singOut(config: SignOutAccountConfig): Promise<void>;
+  setBrokerAvailability(type: 'auto' | 'none'): void;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -99,5 +100,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 
   singOut(config: SignOutAccountConfig): Promise<void> {
     return MsalNative.signOut(config as any);
+  }
+
+  setBrokerAvailability(type: 'auto' | 'none') {
+    return MsalNative.setBrokerAvailability(type);
   }
 }

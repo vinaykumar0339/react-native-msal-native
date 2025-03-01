@@ -19,6 +19,7 @@ export interface Spec extends TurboModule {
   getCurrentAccount(): Promise<{ [key: string]: string }>;
   removeAccount(config: { [key: string]: string }): Promise<boolean>;
   signOut(config: { [key: string]: string }): Promise<void>;
+  setBrokerAvailability(type: 'auto' | 'none'): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('MsalNative');

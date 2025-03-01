@@ -102,6 +102,10 @@ export default function App() {
     }
   };
 
+  const setBrokerAvailability = async () => {
+    PublicClientApplication.instance().setBrokerAvailability('auto');
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -114,6 +118,7 @@ export default function App() {
       <Button onPress={getCurrentAccount} title="Get Current Account" />
       <Button onPress={removeAccount} title="Remove Account" />
       <Button onPress={signOut} title="Sign Out" />
+      <Button onPress={setBrokerAvailability} title="Set Broker Availability" />
     </View>
   );
 }

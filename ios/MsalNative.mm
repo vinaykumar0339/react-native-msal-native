@@ -439,6 +439,15 @@ RCT_EXPORT_METHOD(signOut:(nonnull NSDictionary *)config resolve:(nonnull RCTPro
   });
 }
 
+RCT_EXPORT_METHOD(setBrokerAvailability:(nonnull NSString *)type) {
+  if ([type  isEqualToString: @"auto"]) {
+    MSALGlobalConfig.brokerAvailability = MSALBrokeredAvailabilityAuto;
+  } else if ([type isEqualToString: @"none"]) {
+    MSALGlobalConfig.brokerAvailability = MSALBrokeredAvailabilityNone;
+  }
+}
+
+
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
 (const facebook::react::ObjCTurboModule::InitParams &)params
