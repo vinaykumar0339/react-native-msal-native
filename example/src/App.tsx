@@ -22,6 +22,17 @@ export default function App() {
             authority: 'https://login.microsoftonline.com/organizations',
             redirectUri: 'msauth.msalnative.example://auth',
           },
+          android: {
+            clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
+            redirectUri: 'msauth.msalnative.example://auth',
+            authorities: [
+              {
+                type: 'AAD',
+                authorityUrl: 'https://login.microsoftonline.com/organizations',
+                default: true,
+              },
+            ],
+          },
         });
       console.log(success, 'createPublicClientApplication');
       Alert.alert('Success', success);

@@ -73,7 +73,7 @@ export class PublicClientApplication
     if (!platformConfig) {
       throw new Error(`please provide the config for ${Platform.OS}`);
     }
-    return MsalNative.createPublicClientApplication(platformConfig);
+    return MsalNative.createPublicClientApplication(platformConfig as any);
   }
 
   // need to change the type of config

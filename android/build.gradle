@@ -83,7 +83,12 @@ android {
       if (isNewArchitectureEnabled()) {
           java.srcDirs += [
             "generated/java",
-            "generated/jni"
+            "generated/jni",
+            "src/newarch"
+          ]
+      } else {
+          java.srcDirs += [
+            "src/oldarch"
           ]
       }
     }
@@ -93,6 +98,10 @@ android {
 repositories {
   mavenCentral()
   google()
+
+  maven {
+    url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1"
+  }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -100,6 +109,13 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+  implementation("com.microsoft.identity.client:msal:4.9.+") {
+    exclude group: "io.opentelemetry"
+    exclude group: 'com.microsoft.device.display'
+  } // MSAL dependency
+  implementation("io.opentelemetry:opentelemetry-api:1.18.0")
+  implementation("io.opentelemetry:opentelemetry-context:1.18.0")
 }
 
 if (isNewArchitectureEnabled()) {

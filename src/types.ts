@@ -64,7 +64,136 @@ export type PublicClientApplicationConfigIOS = {
   multipleCloudsSupported?: boolean;
 };
 
-export type PublicClientApplicationConfigAndroid = {};
+export type Audience = {
+  type:
+    | 'AzureADandPersonalMicrosoftAccount'
+    | 'AzureADMyOrg'
+    | 'AzureADMultipleOrgs'
+    | 'PersonalMicrosoftAccount';
+  tenantId?: string;
+};
+
+export type Authority = {
+  type: 'AAD' | 'B2C';
+  audience?: Audience;
+  default: boolean;
+  authorityUrl: string;
+};
+
+export type Http = {
+  /**
+   * Time in milliseconds
+   */
+  connectTimeout?: number;
+  /**
+   * Time in milliseconds
+   */
+  readTimeout?: number;
+};
+
+export type Logging = {
+  /**
+   * Whether to emit personal data
+   */
+  piiEnabled?: boolean;
+  /**
+   * Which log messages to output. Supported log levels include ERROR,WARNING,INFO, and VERBOSE.
+   */
+  logLevel?: 'ERROR' | 'WARNING' | 'INFO' | 'VERBOSE';
+  /**
+   * Whether to output to log cat in addition to the logging interface
+   */
+  logcatEnabled?: boolean;
+};
+
+export type PublicClientApplicationConfigAndroid = {
+  /**
+   * The client ID or app ID that was created when you registered your application.
+   */
+  clientId: string;
+  /**
+   * The redirect URI you registered when you registered your application.
+   * If the redirect URI is to a broker app,
+   * refer to [Redirect URI for public client apps](https://learn.microsoft.com/en-us/entra/identity-platform/msal-client-application-configuration#redirect-uri-for-public-client-apps)
+   * to ensure you're using the correct redirect URI format for your broker app.
+   */
+  redirectUri: string;
+  /**
+   * If you want to use brokered authentication,
+   * the broker_redirect_uri_registered property must be set to true.
+   * In a brokered authentication scenario,
+   * if the application isn't in the correct format to talk to the broker as described in [Redirect URI for public client apps](https://learn.microsoft.com/en-us/entra/identity-platform/msal-client-application-configuration#redirect-uri-for-public-client-apps),
+   * the application validates your redirect URI and throws an exception when it starts.
+   */
+  brokerRedirectUriRegistered?: boolean;
+  /**
+   * The list of authorities that are known and trusted by you.
+   * In addition to the authorities listed here, MSAL also queries Microsoft to get a list of clouds and authorities known to Microsoft.
+   * In this list of authorities, specify the type of the authority and any additional optional parameters such as "audience",
+   * which should align with the audience of your app based on your app's registration. The following is an example list of authorities:
+   * ```js
+   * // Example AzureAD and Personal Microsoft Account
+    {
+        "type": "AAD",
+        "audience": {
+            "type": "AzureADandPersonalMicrosoftAccount"
+        },
+        "default": true // Indicates that this is the default to use if not provided as part of the acquireToken call
+    },
+    // Example AzureAD My Organization
+    {
+        "type": "AAD",
+        "audience": {
+            "type": "AzureADMyOrg",
+            "tenant_id": "contoso.com" // Provide your specific tenant ID here
+        }
+    },
+    // Example AzureAD Multiple Organizations
+    {
+        "type": "AAD",
+        "audience": {
+            "type": "AzureADMultipleOrgs"
+        }
+    },
+    //Example PersonalMicrosoftAccount
+    {
+        "type": "AAD",
+        "audience": {
+            "type": "PersonalMicrosoftAccount"
+        }
+    }
+   * ```
+   */
+  authorities?: Authority[];
+  /**
+   * Indicates whether to use an embedded webview, or the default browser on the device, when signing in an account or authorizing access to a resource.
+   */
+  authorizationUserAgent?: 'WEBVIEW' | 'BROWSER';
+  /**
+   * For clients that support multiple national clouds, specify true.
+   * The Microsoft identity platform will then automatically redirect to the correct national cloud during authorization and token redemption.
+   * You can determine the national cloud of the signed-in account by examining the authority associated with the AuthenticationResult.
+   * Note that the AuthenticationResult doesn't provide the national cloud-specific endpoint address of the resource for which you request a token.
+   */
+  multipleCloudsSupported?: boolean;
+  /**
+   * Configure global settings for HTTP timeouts
+   */
+  http?: Http;
+  /**
+   * Configure global settings for logging
+   */
+  logging?: Logging;
+  /**
+   * Specifies how many accounts can be used within your app at a time
+   */
+  accountMode?: 'SINGLE' | 'MULTIPLE';
+  /**
+   * An allow-list of browsers that are compatible with MSAL.
+   * These browsers correctly handle redirects to custom intents. You can add to this list.
+   */
+  browserSafelist?: Record<string, any>[];
+};
 
 export type PublicClientApplicationConfig = {
   ios?: PublicClientApplicationConfigIOS;

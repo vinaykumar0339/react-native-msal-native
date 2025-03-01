@@ -9,7 +9,7 @@ import java.util.HashMap
 
 class MsalNativePackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == MsalNativeModule.NAME) {
+    return if (name == MsalNativeModuleImpl.NAME) {
       MsalNativeModule(reactContext)
     } else {
       null
@@ -19,13 +19,14 @@ class MsalNativePackage : BaseReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[MsalNativeModule.NAME] = ReactModuleInfo(
-        MsalNativeModule.NAME,
-        MsalNativeModule.NAME,
+      val isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+      moduleInfos[MsalNativeModuleImpl.NAME] = ReactModuleInfo(
+        MsalNativeModuleImpl.NAME,
+        MsalNativeModuleImpl.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
-        true // isTurboModule
+        isTurboModule // isTurboModule
       )
       moduleInfos
     }
