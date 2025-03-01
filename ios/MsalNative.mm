@@ -11,8 +11,67 @@
 
 RCT_EXPORT_MODULE()
 
-// MARK: React Native Export Methods
+- (NSDictionary *)getAccountWithConfig:(NSDictionary *)config {
+    NSString *identifier = [RCTConvert NSString:config[@"identifier"]];
+    NSString *username = [RCTConvert NSString:config[@"username"]];
+    
+    NSError *accountError = nil;
+    MSALAccount *account = nil;
+    
+    if (identifier) {
+        account = [self->_application accountForIdentifier:identifier error:&accountError];
+        if (accountError) {
+            return @{ @"errorCode": @"ACCOUNT_NOT_FOUND_ERROR",
+                      @"errorMessage": [NSString stringWithFormat:@"Account Not Found For identifier: %@", identifier],
+                      @"error": accountError };
+        }
+    } else if (username) {
+        account = [self->_application accountForUsername:username error:&accountError];
+        if (accountError) {
+            return @{ @"errorCode": @"ACCOUNT_NOT_FOUND_ERROR",
+                      @"errorMessage": [NSString stringWithFormat:@"Account Not Found For username: %@", username],
+                      @"error": accountError };
+        }
+    } else {
+        return @{ @"errorCode": @"MISSING_PARAMETER_ERROR",
+                  @"errorMessage": @"Please provide identifier or username" };
+    }
+    
+    if (!account) {
+        return @{ @"errorCode": @"ACCOUNT_NOT_FOUND_ERROR",
+                  @"errorMessage": @"Account not found. If this occurs multiple times despite being certain the account exists, try acquiring the token interactively.", };
+    }
+    
+    return @{ @"account": account };
+}
 
+-(MSALWebviewParameters *)getWebViewParamaters:(NSDictionary *)config
+                                viewController: (UIViewController *)viewController
+{
+  MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
+  
+  if (config) {
+    //  presentationStyle
+    NSString* presentationStyle = [RCTConvert NSString:config[@"presentationStyle"]];
+    if (presentationStyle) {
+      webParameters.presentationStyle = [MsalNativeHelper getPresentationStyle:presentationStyle];
+    }
+    //  prefersEphemeralWebBrowserSession
+    BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:config[@"prefersEphemeralWebBrowserSession"]];
+    webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+    
+    //  webviewType
+    NSString* webviewType = [RCTConvert NSString:config[@"webviewType"]];
+    if (webviewType) {
+      webParameters.webviewType = [MsalNativeHelper getWebViewType:webviewType];
+    }
+  }
+  
+  return webParameters;
+}
+
+
+// MARK: React Native Export Methods
 RCT_EXPORT_METHOD(createPublicClientApplication:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
   NSString *clientId = [RCTConvert NSString:config[@"clientId"]];
   
@@ -109,21 +168,9 @@ RCT_EXPORT_METHOD(acquireToken:(nonnull NSDictionary *)config resolve:(nonnull R
       return;
     }
     
-    MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
-    //  presentationStyle
-    NSString* presentationStyle = [RCTConvert NSString:config[@"presentationStyle"]];
-    if (presentationStyle) {
-      webParameters.presentationStyle = [MsalNativeHelper getPresentationStyle:presentationStyle];
-    }
-    //  prefersEphemeralWebBrowserSession
-    BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:config[@"prefersEphemeralWebBrowserSession"]];
-    webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+    NSDictionary *webConfigParameters = [RCTConvert NSDictionary:config[@"webParameters"]];
     
-    //  webviewType
-    NSString* webviewType = [RCTConvert NSString:config[@"webviewType"]];
-    if (webviewType) {
-      webParameters.webviewType = [MsalNativeHelper getWebViewType:webviewType];
-    }
+    MSALWebviewParameters *webParameters = [strongSelf getWebViewParamaters:config viewController:viewController];
     
     //  scopes
     NSArray<NSString *> *scopes = [RCTConvert NSStringArray:config[@"scopes"]];
@@ -183,29 +230,15 @@ RCT_EXPORT_METHOD(acquireTokenSilent:(nonnull NSDictionary *)config resolve:(non
     if (!strongSelf) return;
     
     // get the account
-    NSString *identifier = [RCTConvert NSString:config[@"identifier"]];
-    NSString *username = [RCTConvert NSString:config[@"username"]];
-    NSError *accountError = nil;
-    MSALAccount *account = nil;
-    if (identifier) {
-      account = [strongSelf->_application accountForIdentifier:identifier error:&accountError];
-      if (accountError) {
-        reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For identifier: %@", identifier], accountError);
-        return;
-      }
-    } else if (username) {
-      account = [strongSelf->_application accountForUsername:username error:&accountError];
-      if (accountError) {
-        reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For username: %@", username], accountError);
-        return;
-      }
-    } else {
-      reject(@"MISSING_PARAMTER_ERROR", @"Please provide identifier or username", nil);
-      return;
-    }
-    
+    NSDictionary* accountInfo = [self getAccountWithConfig:config];
+    MSALAccount* account = accountInfo[@"account"];
+
+    // if account not there it means we have an error
     if (!account) {
-      reject(@"ACCOUNT_NOT_FOUND_ERROR", @"Account not found. If this occurs multiple times despite being certain the account exists, try acquiring the token interactively.", accountError);
+      NSString *errorCode = accountInfo[@"errorCode"];
+      NSString *errorMessage = accountInfo[@"errorMessage"];
+      NSError *error = accountInfo[@"error"];
+      reject(errorCode, errorMessage, error);
       return;
     }
     
@@ -213,22 +246,6 @@ RCT_EXPORT_METHOD(acquireTokenSilent:(nonnull NSDictionary *)config resolve:(non
     if (!viewController) {
       reject(@"VIEW_CONTROLLER_NOT_FOUND_ERROR", @"View Controller not found to present a login screen", nil);
       return;
-    }
-    
-    MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
-    //  presentationStyle
-    NSString* presentationStyle = [RCTConvert NSString:config[@"presentationStyle"]];
-    if (presentationStyle) {
-      webParameters.presentationStyle = [MsalNativeHelper getPresentationStyle:presentationStyle];
-    }
-    //  prefersEphemeralWebBrowserSession
-    BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:config[@"prefersEphemeralWebBrowserSession"]];
-    webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
-    
-    //  webviewType
-    NSString* webviewType = [RCTConvert NSString:config[@"webviewType"]];
-    if (webviewType) {
-      webParameters.webviewType = [MsalNativeHelper getWebViewType:webviewType];
     }
     
     //  scopes
@@ -295,29 +312,15 @@ RCT_EXPORT_METHOD(removeAccount:(nonnull NSDictionary *)config resolve:(nonnull 
   }
   
   // get the account
-  NSString *identifier = [RCTConvert NSString:config[@"identifier"]];
-  NSString *username = [RCTConvert NSString:config[@"username"]];
-  NSError *accountError = nil;
-  MSALAccount *account = nil;
-  if (identifier) {
-    account = [self->_application accountForIdentifier:identifier error:&accountError];
-    if (accountError) {
-      reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For identifier: %@", identifier], accountError);
-      return;
-    }
-  } else if (username) {
-    account = [self->_application accountForUsername:username error:&accountError];
-    if (accountError) {
-      reject(@"ACCOUNT_NOT_FOUND_ERROR", [NSString stringWithFormat:@"Account Not Found For username: %@", username], accountError);
-      return;
-    }
-  } else {
-    reject(@"MISSING_PARAMTER_ERROR", @"Please provide identifier or username", nil);
-    return;
-  }
-  
+  NSDictionary* accountInfo = [self getAccountWithConfig:config];
+  MSALAccount* account = accountInfo[@"account"];
+
+  // if account not there it means we have an error
   if (!account) {
-    reject(@"ACCOUNT_NOT_FOUND_ERROR", @"Account not found. If this occurs multiple times despite being certain the account exists, try acquiring the token interactively.", accountError);
+    NSString *errorCode = accountInfo[@"errorCode"];
+    NSString *errorMessage = accountInfo[@"errorMessage"];
+    NSError *error = accountInfo[@"error"];
+    reject(errorCode, errorMessage, error);
     return;
   }
   
@@ -330,6 +333,72 @@ RCT_EXPORT_METHOD(removeAccount:(nonnull NSDictionary *)config resolve:(nonnull 
     resolve(@(removedSuccessfully));
   }
 }
+
+RCT_EXPORT_METHOD(signOut:(nonnull NSDictionary *)config resolve:(nonnull RCTPromiseResolveBlock)resolve reject:(nonnull RCTPromiseRejectBlock)reject) {
+  if (!_application) {
+    reject(@"APPLICATION_NOT_INITIALIZED_ERROR", @"Application not initialized. Make sure you called createPublicClientApplication", nil);
+    return;
+  }
+  
+  // get the account
+  NSDictionary* accountInfo = [self getAccountWithConfig:config];
+  MSALAccount* account = accountInfo[@"account"];
+
+  // if account not there it means we have an error
+  if (!account) {
+    NSString *errorCode = accountInfo[@"errorCode"];
+    NSString *errorMessage = accountInfo[@"errorMessage"];
+    NSError *error = accountInfo[@"error"];
+    reject(errorCode, errorMessage, error);
+    return;
+  }
+
+  __weak MsalNative *weakSelf = self;
+  
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong MsalNative *strongSelf = weakSelf;
+    if (!strongSelf) return;
+    
+    UIViewController *viewController = RCTPresentedViewController();
+    if (!viewController) {
+      reject(@"VIEW_CONTROLLER_NOT_FOUND_ERROR", @"View Controller not found to present a login screen", nil);
+      return;
+    }
+    
+    NSDictionary *webConfigParameters = [RCTConvert NSDictionary:config[@"webParameters"]];
+    
+    MSALWebviewParameters *webParameters = [self getWebViewParamaters:webConfigParameters viewController:viewController];
+    
+    MSALSignoutParameters *signoutParameters = [[MSALSignoutParameters alloc] initWithWebviewParameters:webParameters];
+    
+    // signoutFromBrowser
+    BOOL signoutFromBrowser = [RCTConvert BOOL:config[@"signoutFromBrowser"]];
+    signoutParameters.signoutFromBrowser = signoutFromBrowser;
+    
+    // wipeAccount
+    BOOL wipeAccount = [RCTConvert BOOL:config[@"wipeAccount"]];
+    signoutParameters.wipeAccount = wipeAccount;
+    
+    // wipeAccount
+    BOOL wipeCacheForAllAccounts = [RCTConvert BOOL:config[@"wipeCacheForAllAccounts"]];
+    signoutParameters.wipeCacheForAllAccounts = wipeCacheForAllAccounts;
+    
+    
+    NSDictionary *extraQueryParameters = [RCTConvert NSDictionary:config[@"extraQueryParameters"]];
+    if (extraQueryParameters) {
+      signoutParameters.extraQueryParameters = extraQueryParameters;
+    }
+    
+    [strongSelf->_application signoutWithAccount:account signoutParameters:signoutParameters completionBlock:^(BOOL success, NSError * _Nullable error) {
+      if (error) {
+        reject(@"SIGN_OUT_ERROR", @"Error While SigningOut. Check userInfo Object For more information", error);
+      } else {
+        resolve(@(success));
+      }
+    }];
+  });
+}
+
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

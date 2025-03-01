@@ -78,6 +78,20 @@ export default function App() {
     }
   };
 
+  const signOut = async () => {
+    try {
+      const success = await PublicClientApplication.instance().singOut({
+        username: 'vinay.kumar@vymo072.onmicrosoft.com',
+        // identifier:
+        //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+        signoutFromBrowser: true,
+      });
+      console.log(success, 'signOut');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -88,6 +102,7 @@ export default function App() {
       <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
       <Button onPress={allAccounts} title="Get All Accounts" />
       <Button onPress={removeAccount} title="Remove Account" />
+      <Button onPress={signOut} title="Sign Out" />
     </View>
   );
 }

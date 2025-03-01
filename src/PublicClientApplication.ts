@@ -4,6 +4,7 @@ import type {
   MSALNativeResult,
   PublicClientApplicationConfig,
   RemoveAccountConfig,
+  SignOutAccountConfig,
 } from './types';
 import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
@@ -20,6 +21,7 @@ interface IPublicClientApplication {
   ): Promise<MSALNativeResult>;
   allAccounts(): Promise<MSALNativeResult[]>;
   removeAccount(config: RemoveAccountConfig): Promise<boolean>;
+  singOut(config: SignOutAccountConfig): Promise<void>;
 }
 
 export class PublicClientApplication implements IPublicClientApplication {
@@ -81,5 +83,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 
   removeAccount(config: RemoveAccountConfig): Promise<boolean> {
     return MsalNative.removeAccount(config);
+  }
+
+  singOut(config: SignOutAccountConfig): Promise<void> {
+    return MsalNative.signOut(config as any);
   }
 }

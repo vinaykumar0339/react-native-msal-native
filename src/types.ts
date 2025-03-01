@@ -340,3 +340,50 @@ export type RemoveAccountConfig = {
    */
   identifier?: string;
 };
+
+export type SignOutAccountConfig = {
+  /**
+   * The displayable value in UserPrincipleName(UPN) format
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
+   */
+  username?: string;
+  /**
+   * The unique identifier for the account.
+   * NOTE: use either username or identifier, if both are provided, identifier will be used.
+   */
+  identifier?: string;
+  /**
+   * A copy of the configuration which was provided in the initializer.
+   */
+  webParameters?: WebParameters;
+  /**
+    Specifies whether signout should also open the browser and send a network request to the end_session_endpoint.
+    NO by default.
+  */
+  signoutFromBrowser?: boolean;
+  /**
+    Removes account from the keychain with either com.microsoft.adalcache shared group by default or the one provided when configuring MSALPublicClientApplication.
+
+    This is a destructive action and will remove the SSO state from all apps sharing the same cache!
+    It's intended to be used only as a way to achieve GDPR compliance and make sure all user artifacts are cleaned on user sign out.
+    It's not intended to be used as a way to reset or fix token cache.
+    Please make sure end user is shown UI and/or warning before this flag gets set to YES.
+    NO by default.
+  */
+  wipeAccount?: boolean;
+  /**
+    When flag is set, following should happen:
+      - Wipe all known universal cache locations regardless of the clientId, account etc. Should include all tokens and metadata for any cloud.
+      - Wipe all known legacy ADAL cache locations regardless of the clientId, account etc.
+      - MSALWipeCacheForAllAccountsConfig contains a list of additional locations for partner caches to be wiped (e.g. Teams, VisualStudio etc). Wipe operation should wipe out all those additional locations. This file includes "display identifier" of the location (e.g. Teams cache), and precise identifiers like kSecAttrAccount, kSecAttrService etc.
+      - If SSO extension is present, call SSO extension wipe operation. Wipe operation should only be allowed to the privileged applications like Intune CP on macOS or Authenticator on iOS.
+      - Failing any of the steps should return error back to the app including exact locations and apps that failed to be cleared.
+    NO by default.
+    This is a dangerous operation.
+  */
+  wipeCacheForAllAccounts?: boolean;
+  /**
+   Key-value pairs to pass to the logout endpoint. This should not be url-encoded value.
+  */
+  extraQueryParameters?: Record<string, string>;
+};
