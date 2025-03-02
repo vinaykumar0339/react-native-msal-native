@@ -478,7 +478,7 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
   }
 
   fun cancelCurrentWebAuthSession(promise: Promise?) {
-    TODO("Not yet implemented")
+    promise?.reject("NOT_SUPPORTED", "cancelCurrentWebAuthSession is not supported on Android")
   }
 
   fun allAccounts(promise: Promise?) {

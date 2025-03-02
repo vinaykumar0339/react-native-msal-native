@@ -24,7 +24,7 @@ class MsalNativeModule(reactContext: ReactApplicationContext): NativeMsalNativeS
   }
 
   override fun cancelCurrentWebAuthSession(promise: Promise?) {
-    TODO("Not yet implemented")
+    implementation.cancelCurrentWebAuthSession(promise)
   }
 
   override fun allAccounts(promise: Promise?) {
