@@ -211,32 +211,43 @@ export type PublicClientApplicationConfig = {
 export type PromptType =
   /**
    * If no user is specified the authentication webview will present a list of users currently signed in for the user to select among
+   * Platform: iOS, Android
    */
   | 'select_account'
   /**
    * Require the user to authenticate in the webview
+   * Platform: iOS, Android
    */
   | 'login'
   /**
    * Require the user to consent to the current set of scopes for the request.
+   * Platform: iOS, Android
    */
   | 'consent'
   /**
    * Create a new account rather than authenticate an existing identity.
+   * Platform: iOS
    */
   | 'create'
   /**
    * The SSO experience will be determined by the presence of cookies in the webview and account type.
    * User won’t be prompted unless necessary.
    * If multiple users are signed in, select account experience will be presented.
+   * Platform: iOS
    */
   | 'prompt_if_necessary'
   /**
    * The SSO experience will be determined by the presence of cookies in the webview and account type.
    * User won’t be prompted unless necessary.
    * If multiple users are signed in, select account experience will be presented.
+   * Platform: iOS
    */
-  | 'default';
+  | 'default'
+  /**
+   * acquireToken will not send the prompt parameter to the authorize endpoint.
+   * Platform: Android
+   */
+  | 'when_required';
 
 export type WebParameters = {
   /**
@@ -384,16 +395,42 @@ export type AcquireSilentTokenConfigIOS = {
   allowUsingLocalCachedRtWhenSsoExtFailed?: boolean;
 } & AcquireTokenCommonConfigIOS;
 
-export type AcquireTokenConfigAndroid = {};
+export type AcquireTokenCommonConfigAndroid = {
+  /**
+   * Permissions you want included in the access token received in the result in the completionBlock.
+   * Not all scopes are guaranteed to be included in the access token returned.
+   */
+  scopes?: string[];
+  /**
+   * Used to specify query parameters that must be passed to both the authorize and token endpoints to target MSAL at a specific test slice & flight.
+   * These apply to all requests made by an application.
+   */
+  authenticationScheme?: AuthenticationScheme;
+};
+
+export type AcquireInteractiveTokenConfigAndroid = {
+  /**
+   * A specific prompt type for the interactive authentication flow.
+   */
+  promptType?: PromptType;
+  /**
+   * A loginHint (usually an email) to pass to the service at the beginning of the interactive authentication flow.
+   * The account returned in the completion block is not guaranteed to match the loginHint.
+   */
+  loginHint?: string;
+} & AcquireTokenCommonConfigAndroid;
+
+export type AcquireSilentTokenConfigAndroid =
+  {} & AcquireTokenCommonConfigAndroid;
 
 export type AcquireInteractiveTokenConfig = {
   ios?: AcquireInteractiveTokenConfigIOS;
-  android?: AcquireTokenConfigAndroid;
+  android?: AcquireInteractiveTokenConfigAndroid;
 };
 
 export type AcquireSilentTokenConfig = {
   ios?: AcquireSilentTokenConfigIOS;
-  android?: AcquireTokenConfigAndroid;
+  android?: AcquireSilentTokenConfigAndroid;
 };
 
 export type MSALNativeTenantProfile = {

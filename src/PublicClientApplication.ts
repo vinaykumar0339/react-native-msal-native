@@ -86,7 +86,7 @@ export class PublicClientApplication
       throw new Error(`please provide the config for ${Platform.OS}`);
     }
     return MsalNative.acquireToken(
-      platformConfig ?? {}
+      platformConfig ?? ({} as any)
     ) as unknown as Promise<MSALNativeResult>;
   }
 
@@ -100,7 +100,7 @@ export class PublicClientApplication
       throw new Error(`please provide the config for ${Platform.OS}`);
     }
     return MsalNative.acquireTokenSilent(
-      platformConfig ?? {}
+      platformConfig ?? ({} as any)
     ) as unknown as Promise<MSALNativeResult>;
   }
 

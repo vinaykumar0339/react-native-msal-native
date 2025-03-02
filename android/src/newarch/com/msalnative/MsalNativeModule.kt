@@ -16,7 +16,7 @@ class MsalNativeModule(reactContext: ReactApplicationContext): NativeMsalNativeS
   }
 
   override fun acquireToken(config: ReadableMap?, promise: Promise?) {
-    TODO("Not yet implemented")
+    implementation.acquireToken(config, promise)
   }
 
   override fun acquireTokenSilent(config: ReadableMap?, promise: Promise?) {

@@ -3,10 +3,15 @@ package com.msalnative
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.microsoft.identity.client.AcquireTokenParameters
+import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.IPublicClientApplication.ApplicationCreatedListener
+import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 import org.json.JSONArray
@@ -240,8 +245,81 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
     }
   }
 
+  private fun getScopesFromReadableArray(scopes: ReadableArray): List<String> {
+    val mutableScopes = mutableListOf<String>()
+    for (i in 0 until scopes.size()) {
+      scopes.getString(i)?.let { it1 -> mutableScopes.add(it1) }
+    }
+    return mutableScopes
+  }
+
+  private fun getPromptType(promptType: String?): Prompt {
+    return when(promptType) {
+      "select_account" -> Prompt.SELECT_ACCOUNT
+      "login" -> Prompt.LOGIN
+      "consent" -> Prompt.CONSENT
+      "when_required" -> Prompt.WHEN_REQUIRED
+      else -> Prompt.SELECT_ACCOUNT
+    }
+  }
+
   fun acquireToken(config: ReadableMap?, promise: Promise?) {
-    TODO("Not yet implemented")
+    publicClientApplication?.let {
+      // Acquire token
+      val acquireTokenParametersBuilder = AcquireTokenParameters.Builder()
+      acquireTokenParametersBuilder.startAuthorizationFromActivity(context.currentActivity)
+
+      // scopes
+      if (config?.hasKey("scopes") == true) {
+        val scopes = config.getArray("scopes")
+        scopes?.let { sco ->
+          acquireTokenParametersBuilder.withScopes(getScopesFromReadableArray(sco))
+        }
+      }
+
+      // loginHint
+      if (config?.hasKey("loginHint") == true) {
+        val loginHint = config.getString("loginHint")
+        acquireTokenParametersBuilder.withLoginHint(loginHint)
+      }
+
+      // promptType
+      if (config?.hasKey("promptType") == true) {
+        val promptType = config.getString("promptType")
+        acquireTokenParametersBuilder.withPrompt(getPromptType(promptType))
+      }
+
+      // callbacks
+      acquireTokenParametersBuilder.withCallback(object : AuthenticationCallback {
+        override fun onSuccess(authenticationResult: IAuthenticationResult?) {
+          promise?.resolve("Successfully acquired token")
+        }
+
+        override fun onError(exception: MsalException?) {
+          var map: WritableMap? = null
+          if (exception != null) {
+            map = getWritableMapFromException(exception)
+          }
+          promise?.reject(
+            "ACQUIRE_TOKEN_ERROR",
+            exception?.localizedMessage,
+            exception,
+            map
+          )
+        }
+
+        override fun onCancel() {
+          promise?.reject("ACQUIRE_TOKEN_CANCELLED", "User cancelled the operation")
+        }
+
+      })
+
+      val acquireTokenParameters = acquireTokenParametersBuilder.build()
+      it.acquireToken(acquireTokenParameters)
+
+    } ?: run {
+      promise?.reject("NO_APPLICATION_CREATED", "Application not initialized. Make sure you called createPublicClientApplication")
+    }
   }
 
   fun acquireTokenSilent(config: ReadableMap?, promise: Promise?) {

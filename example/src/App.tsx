@@ -26,7 +26,7 @@ export default function App() {
             clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
             authorizationUserAgent: 'DEFAULT',
             redirectUri:
-              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D',
+              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU=',
             authorities: [
               {
                 type: 'AAD',
@@ -51,6 +51,10 @@ export default function App() {
       const success = await PublicClientApplication.instance().acquireToken({
         ios: {
           promptType: 'select_account',
+        },
+        android: {
+          promptType: 'select_account',
+          scopes: ['User.Read'],
         },
       });
       console.log(success, 'acquireToken');
