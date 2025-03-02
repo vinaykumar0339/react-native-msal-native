@@ -26,7 +26,7 @@ export default function App() {
             clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
             authorizationUserAgent: 'DEFAULT',
             redirectUri:
-              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU=',
+              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D',
             authorities: [
               {
                 type: 'AAD',

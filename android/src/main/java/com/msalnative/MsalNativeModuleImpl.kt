@@ -253,16 +253,6 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
     return mutableScopes
   }
 
-  private fun getPromptType(promptType: String?): Prompt {
-    return when(promptType) {
-      "select_account" -> Prompt.SELECT_ACCOUNT
-      "login" -> Prompt.LOGIN
-      "consent" -> Prompt.CONSENT
-      "when_required" -> Prompt.WHEN_REQUIRED
-      else -> Prompt.SELECT_ACCOUNT
-    }
-  }
-
   fun acquireToken(config: ReadableMap?, promise: Promise?) {
     publicClientApplication?.let {
       // Acquire token
@@ -277,6 +267,24 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
         }
       }
 
+      // extraQueryParameters
+      if (config?.hasKey("extraQueryParameters") == true) {
+        val extraQueryParameters = config.getMap("extraQueryParameters")
+        val extraQueryParametersMap = mutableMapOf<String, String>()
+        extraQueryParameters?.toHashMap()?.forEach { (key, value) ->
+          extraQueryParametersMap[key] = value.toString()
+        }
+        acquireTokenParametersBuilder.withAuthorizationQueryStringParameters(extraQueryParametersMap.entries.toMutableList())
+      }
+
+      // extraScopesToConsent
+      if (config?.hasKey("extraScopesToConsent") == true) {
+        val extraScopesToConsent = config.getArray("extraScopesToConsent")
+        extraScopesToConsent?.let { extraScopes ->
+          acquireTokenParametersBuilder.withOtherScopesToAuthorize(getScopesFromReadableArray(extraScopes))
+        }
+      }
+
       // loginHint
       if (config?.hasKey("loginHint") == true) {
         val loginHint = config.getString("loginHint")
@@ -286,13 +294,25 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
       // promptType
       if (config?.hasKey("promptType") == true) {
         val promptType = config.getString("promptType")
-        acquireTokenParametersBuilder.withPrompt(getPromptType(promptType))
+        acquireTokenParametersBuilder.withPrompt(MsalNativeHelper.getPromptType(promptType))
+      }
+
+      // authenticationScheme
+      if (config?.hasKey("authenticationScheme") == true) {
+        val authenticationScheme = config.getMap("authenticationScheme")
+        authenticationScheme?.let { scheme ->
+          acquireTokenParametersBuilder.withAuthenticationScheme(MsalNativeHelper.authenticationSchemeFromConfig(scheme))
+        }
       }
 
       // callbacks
       acquireTokenParametersBuilder.withCallback(object : AuthenticationCallback {
         override fun onSuccess(authenticationResult: IAuthenticationResult?) {
-          promise?.resolve("Successfully acquired token")
+          authenticationResult?.let { result ->
+            promise?.resolve(MsalModelHelper.convertMsalResultToDictionary(result))
+          } ?: run {
+            promise?.reject("ACQUIRE_TOKEN_ERROR", "Authentication result is null")
+          }
         }
 
         override fun onError(exception: MsalException?) {

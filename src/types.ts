@@ -327,14 +327,21 @@ export type AuthenticationPopScheme = {
    */
   requestUrl?: string;
   nonce?: string;
+  /**
+   * Platform: iOS
+   */
   additionalParameters?: Record<string, string>;
+  /**
+   * Platform: Android
+   */
+  clientClaims?: string;
 };
 
 export type AuthenticationScheme =
   | AuthenticationBearerScheme
   | AuthenticationPopScheme;
 
-export type AcquireTokenCommonConfigIOS = {
+export type AcquireTokenCommonConfig = {
   /**
    * Permissions you want included in the access token received in the result in the completionBlock.
    * Not all scopes are guaranteed to be included in the access token returned.
@@ -369,7 +376,7 @@ export type AcquireInteractiveTokenConfigIOS = {
    * A copy of the configuration which was provided in the initializer.
    */
   webParameters?: WebParameters;
-} & AcquireTokenCommonConfigIOS;
+} & AcquireTokenCommonConfig;
 
 export type AcquireSilentTokenConfigIOS = {
   /**
@@ -393,22 +400,13 @@ export type AcquireSilentTokenConfigIOS = {
    * 2. When Sso Extension is not presenting on the device This parameter is ignored, and tries with existing refresh token in the cache.
    */
   allowUsingLocalCachedRtWhenSsoExtFailed?: boolean;
-} & AcquireTokenCommonConfigIOS;
-
-export type AcquireTokenCommonConfigAndroid = {
-  /**
-   * Permissions you want included in the access token received in the result in the completionBlock.
-   * Not all scopes are guaranteed to be included in the access token returned.
-   */
-  scopes?: string[];
-  /**
-   * Used to specify query parameters that must be passed to both the authorize and token endpoints to target MSAL at a specific test slice & flight.
-   * These apply to all requests made by an application.
-   */
-  authenticationScheme?: AuthenticationScheme;
-};
+} & AcquireTokenCommonConfig;
 
 export type AcquireInteractiveTokenConfigAndroid = {
+  /**
+   * Permissions you want the account to consent to in the same authentication flow, but won’t be included in the returned access token.
+   */
+  extraScopesToConsent?: string[];
   /**
    * A specific prompt type for the interactive authentication flow.
    */
@@ -418,10 +416,9 @@ export type AcquireInteractiveTokenConfigAndroid = {
    * The account returned in the completion block is not guaranteed to match the loginHint.
    */
   loginHint?: string;
-} & AcquireTokenCommonConfigAndroid;
+} & AcquireTokenCommonConfig;
 
-export type AcquireSilentTokenConfigAndroid =
-  {} & AcquireTokenCommonConfigAndroid;
+export type AcquireSilentTokenConfigAndroid = {} & AcquireTokenCommonConfig;
 
 export type AcquireInteractiveTokenConfig = {
   ios?: AcquireInteractiveTokenConfigIOS;
@@ -441,7 +438,7 @@ export type MSALNativeTenantProfile = {
   claims: Record<string, any>;
 };
 
-export type MSALNativeAccount = {
+export type MSALNativeAccountIOS = {
   username: string;
   identifier: string;
   environment: string;
@@ -451,13 +448,24 @@ export type MSALNativeAccount = {
   tenantProfiles: MSALNativeTenantProfile[];
 };
 
+export type MSALNativeAccountAndroid = {
+  authority: string;
+  id: string;
+  username: string;
+  idToken: string;
+  tenantId: string;
+  claims: Record<string, any>;
+};
+
+export type MSALNativeAccount = MSALNativeAccountIOS | MSALNativeAccountAndroid;
+
 export type MSALNativeAccountId = {
   identifier: string;
   objectId: string;
   tenantId: string;
 };
 
-export type MSALNativeResult = {
+export type MSALNativeResultIOS = {
   /**
    * The Access Token requested. Note that if access token is not returned in token response, this property will be returned as an empty string.
    */
@@ -501,6 +509,19 @@ export type MSALNativeResult = {
    */
   authenticationScheme: string;
 };
+
+export type MSALNativeResultAndroid = {
+  accessToken: string;
+  expiresOn: number; // timestamp in milliseconds
+  scopes: string[];
+  account: MSALNativeAccountAndroid;
+  tenantId?: string;
+  correlationId?: string;
+  authorizationHeader: string;
+  authenticationScheme: string;
+};
+
+export type MSALNativeResult = MSALNativeResultIOS | MSALNativeResultAndroid;
 
 export type CurrentAccountResponse = {
   account: MSALNativeAccount;
