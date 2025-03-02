@@ -539,7 +539,7 @@ export type CurrentAccountResponse = {
   previousAccount: MSALNativeAccount;
 };
 
-export type AccountConfig = {
+export type AccountConfigIOS = {
   /**
    * The displayable value in UserPrincipleName(UPN) format
    * NOTE: use either username or identifier, if both are provided, identifier will be used.
@@ -552,7 +552,19 @@ export type AccountConfig = {
   identifier?: string;
 };
 
-export type SignOutAccountConfig = {
+export type AccountConfigAndroid = {
+  /**
+   * The unique identifier for the account.
+   */
+  id: string;
+};
+
+export type AccountConfig = {
+  ios?: AccountConfigIOS;
+  android?: AccountConfigAndroid;
+};
+
+export type SignOutAccountConfigIOS = {
   /**
    * A copy of the configuration which was provided in the initializer.
    */
@@ -587,4 +599,11 @@ export type SignOutAccountConfig = {
    Key-value pairs to pass to the logout endpoint. This should not be url-encoded value.
   */
   extraQueryParameters?: Record<string, string>;
-} & AccountConfig;
+} & AccountConfig['ios'];
+
+export type SignOutAccountConfigAndroid = {} & AccountConfig['android'];
+
+export type SignOutAccountConfig = {
+  ios?: SignOutAccountConfigIOS;
+  android?: SignOutAccountConfigAndroid;
+};

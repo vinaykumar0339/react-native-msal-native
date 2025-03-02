@@ -28,15 +28,15 @@ class MsalNativeModule(context: ReactApplicationContext): ReactContextBaseJavaMo
     }
 
     override fun allAccounts(promise: Promise?) {
-        TODO("Not yet implemented")
+        implementation.allAccounts(promise)
     }
 
     override fun account(config: ReadableMap?, promise: Promise?) {
-        TODO("Not yet implemented")
+      implementation.account(config, promise)
     }
 
     override fun getCurrentAccount(promise: Promise?) {
-        TODO("Not yet implemented")
+      implementation.getCurrentAccount(promise)
     }
 
     override fun removeAccount(config: ReadableMap?, promise: Promise?) {
@@ -52,10 +52,10 @@ class MsalNativeModule(context: ReactApplicationContext): ReactContextBaseJavaMo
     }
 
     override fun isCompatibleAADBrokerAvailable(promise: Promise?) {
-        TODO("Not yet implemented")
+      implementation.isCompatibleAADBrokerAvailable(promise)
     }
 
     override fun sdkVersion(promise: Promise?) {
-        TODO("Not yet implemented")
+      implementation.sdkVersion(promise)
     }
 }

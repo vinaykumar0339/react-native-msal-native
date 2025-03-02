@@ -5,6 +5,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.ITenantProfile
+import com.microsoft.identity.client.MultiTenantAccount
 import com.microsoft.identity.client.TenantProfile
 import com.msalnative.MsalNativeHelper.convertDictionary
 
@@ -29,7 +31,7 @@ object MsalModelHelper {
     return map
   }
 
-  fun convertMsalTenantProfileToDictionary(tenantProfile: TenantProfile): WritableMap {
+  fun convertMsalTenantProfileToDictionary(tenantProfile: ITenantProfile): WritableMap {
     val map = Arguments.createMap()
 
     map.putString("id", tenantProfile.id)
@@ -51,5 +53,22 @@ object MsalModelHelper {
     map.putString("tenantId", account.tenantId)
     map.putMap("claims", convertDictionary(account.claims))
     return map
+  }
+
+  fun convertMsalMultipleAccountToDictionary(account: MultiTenantAccount): WritableMap {
+    val tenantProfiles = account.tenantProfiles
+    val tenantProfilesArray = Arguments.createArray()
+    tenantProfiles.forEach { tenantProfile ->
+      tenantProfilesArray.pushMap(convertMsalTenantProfileToDictionary(tenantProfile.value))
+    }
+    val accountMap = Arguments.createMap()
+    accountMap.putString("id", account.id)
+    accountMap.putString("username", account.username)
+    accountMap.putString("idToken", account.idToken)
+    accountMap.putString("tenantId", account.tenantId)
+    accountMap.putArray("tenantProfiles", tenantProfilesArray)
+    accountMap.putMap("claims", convertDictionary(account.claims))
+    accountMap.putString("authority", account.authority)
+    return accountMap
   }
 }

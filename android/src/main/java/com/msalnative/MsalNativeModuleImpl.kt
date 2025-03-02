@@ -6,14 +6,18 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeArray
+import com.facebook.react.bridge.WritableNativeMap
 import com.microsoft.identity.client.Account
 import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.ICurrentAccountResult
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.IPublicClientApplication.ApplicationCreatedListener
+import com.microsoft.identity.client.MultiTenantAccount
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication
 import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.PublicClientApplication
@@ -223,6 +227,7 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
     return publicClientApplication is SingleAccountPublicClientApplication
   }
 
+  @Throws(Exception::class)
   private fun getAccount(publicClientApplication: IPublicClientApplication, id: String?): IAccount? {
     val isSingleAccountType = isSingleAccountType(publicClientApplication)
     if (isSingleAccountType) {
@@ -234,6 +239,37 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
       } ?: run {
         throw Exception("Identifier is required to fetch account for MultipleAccountPublicClientApplication")
       }
+    }
+  }
+
+  // this is only for MultipleAccountPublicClientApplication
+  @Throws(Exception::class)
+  private fun getAccounts(publicClientApplication: IPublicClientApplication): List<MultiTenantAccount> {
+    val isSingleAccountType = isSingleAccountType(publicClientApplication)
+    if (isSingleAccountType) {
+      throw Exception("SingleAccountPublicClientApplication does not support accounts method")
+    } else {
+      val accounts = (publicClientApplication as MultipleAccountPublicClientApplication).accounts
+      // Convert safely
+      val multiTenantAccounts = accounts.mapNotNull { it as? MultiTenantAccount }
+
+      if (multiTenantAccounts.isNotEmpty()) {
+        return multiTenantAccounts
+      } else {
+        throw Exception("Accounts not found or invalid type")
+      }
+    }
+  }
+
+  // this is only for SingleAccountPublicClientApplication
+  @Throws(Exception::class)
+  private fun getCurrentAccount(publicClientApplication: PublicClientApplication): ICurrentAccountResult {
+    val isSingleAccountType = isSingleAccountType(publicClientApplication)
+
+    if (isSingleAccountType) {
+      return (publicClientApplication as SingleAccountPublicClientApplication).currentAccount
+    } else {
+      throw Exception("MultipleAccountPublicClientApplication does not support getCurrentAccount method")
     }
   }
 
@@ -446,15 +482,61 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
   }
 
   fun allAccounts(promise: Promise?) {
-    TODO("Not yet implemented")
+    publicClientApplication?.let {
+      try {
+        val accounts = getAccounts(it)
+        val accountsArray = Arguments.createArray()
+        accounts.forEach { account ->
+          accountsArray.pushMap(MsalModelHelper.convertMsalMultipleAccountToDictionary(account))
+        }
+        promise?.resolve(accountsArray)
+      } catch (e: Exception) {
+        promise?.reject("GET_ACCOUNTS_ERROR", e.message, e)
+      }
+    } ?: run {
+      promise?.reject("NO_APPLICATION_CREATED", "Application not initialized. Make sure you called createPublicClientApplication")
+    }
   }
 
   fun account(config: ReadableMap?, promise: Promise?) {
-    TODO("Not yet implemented")
+    publicClientApplication?.let {
+      try {
+        val account = getAccount(it, config?.getString("id"))
+        if (account is MultiTenantAccount) {
+          promise?.resolve(MsalModelHelper.convertMsalMultipleAccountToDictionary(account))
+        } else {
+          promise?.reject("GET_ACCOUNT_ERROR", "Account not found")
+        }
+      } catch (e: Exception) {
+        promise?.reject("GET_ACCOUNT_ERROR", e.message, e)
+      }
+    } ?: run {
+      promise?.reject("NO_APPLICATION_CREATED", "Application not initialized. Make sure you called createPublicClientApplication")
+    }
   }
 
   fun getCurrentAccount(promise: Promise?) {
-    TODO("Not yet implemented")
+    publicClientApplication?.let {
+      try {
+        val currentAccountResult = getCurrentAccount(it as PublicClientApplication)
+        val account = currentAccountResult.currentAccount
+        val previousAccount = currentAccountResult.priorAccount
+        val map = WritableNativeMap()
+        if (account is MultiTenantAccount) {
+          map.putMap("account", MsalModelHelper.convertMsalMultipleAccountToDictionary(account))
+        }
+
+        if (previousAccount is MultiTenantAccount) {
+          map.putMap("previousAccount", MsalModelHelper.convertMsalMultipleAccountToDictionary(previousAccount))
+        }
+
+        promise?.resolve(map)
+      } catch (e: Exception) {
+        promise?.reject("GET_CURRENT_ACCOUNT_ERROR", e.message, e)
+      }
+    } ?: run {
+      promise?.reject("NO_APPLICATION_CREATED", "Application not initialized. Make sure you called createPublicClientApplication")
+    }
   }
 
   fun removeAccount(config: ReadableMap?, promise: Promise?) {
@@ -470,11 +552,11 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
   }
 
   fun isCompatibleAADBrokerAvailable(promise: Promise?) {
-    TODO("Not yet implemented")
+    promise?.reject("NOT_SUPPORTED", "isCompatibleAADBrokerAvailable is not supported on Android")
   }
 
   fun sdkVersion(promise: Promise?) {
-    TODO("Not yet implemented")
+    promise?.resolve(PublicClientApplication.getSdkVersion())
   }
 
   companion object {

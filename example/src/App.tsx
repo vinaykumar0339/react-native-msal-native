@@ -92,12 +92,31 @@ export default function App() {
     }
   };
 
+  const getAccount = async () => {
+    try {
+      const success = await PublicClientApplication.instance().account({
+        ios: {
+          identifier:
+            '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+        },
+        android: {
+          id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
+        },
+      });
+      console.log(success, 'getAccount');
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  };
+
   const removeAccount = async () => {
     try {
       const success = await PublicClientApplication.instance().removeAccount({
-        username: 'vinay.kumar@vymo072.onmicrosoft.com',
-        // identifier:
-        //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+        ios: {
+          username: 'vinay.kumar@vymo072.onmicrosoft.com',
+          // identifier:
+          //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+        },
       });
       console.log(success, 'removeAccount');
     } catch (error) {
@@ -108,10 +127,12 @@ export default function App() {
   const signOut = async () => {
     try {
       const success = await PublicClientApplication.instance().singOut({
-        username: 'vinay.kumar@vymo072.onmicrosoft.com',
-        // identifier:
-        //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
-        signoutFromBrowser: true,
+        ios: {
+          username: 'vinay.kumar@vymo072.onmicrosoft.com',
+          // identifier:
+          //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+          signoutFromBrowser: true,
+        },
       });
       console.log(success, 'signOut');
     } catch (error) {
@@ -161,6 +182,7 @@ export default function App() {
       <Button onPress={acquireToken} title="Acquire Token" />
       <Button onPress={acquireTokenSilently} title="Acquire Token Silently" />
       <Button onPress={allAccounts} title="Get All Accounts" />
+      <Button onPress={getAccount} title="Get Account" />
       <Button onPress={getCurrentAccount} title="Get Current Account" />
       <Button onPress={removeAccount} title="Remove Account" />
       <Button onPress={signOut} title="Sign Out" />

@@ -109,7 +109,14 @@ export class PublicClientApplication
   }
 
   account(config: AccountConfig): Promise<MSALNativeAccount> {
-    return MsalNative.account(config) as unknown as Promise<MSALNativeAccount>;
+    const platformConfig =
+      Platform.OS === 'ios' ? config?.ios : config?.android;
+    if (config && !platformConfig) {
+      throw new Error(`please provide the config for ${Platform.OS}`);
+    }
+    return MsalNative.account(
+      platformConfig as any
+    ) as unknown as Promise<MSALNativeAccount>;
   }
 
   getCurrentAccount(): Promise<CurrentAccountResponse> {
@@ -117,7 +124,12 @@ export class PublicClientApplication
   }
 
   removeAccount(config: AccountConfig): Promise<boolean> {
-    return MsalNative.removeAccount(config);
+    const platformConfig =
+      Platform.OS === 'ios' ? config?.ios : config?.android;
+    if (config && !platformConfig) {
+      throw new Error(`please provide the config for ${Platform.OS}`);
+    }
+    return MsalNative.removeAccount(platformConfig as any);
   }
 
   singOut(config: SignOutAccountConfig): Promise<void> {
