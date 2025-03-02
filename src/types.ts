@@ -349,6 +349,8 @@ export type AcquireTokenCommonConfig = {
   scopes?: string[];
   /**
    * Key-value pairs to pass to the /authorize and /token endpoints. This should not be url-encoded value.
+   * Platform: iOS, Android
+   * NOTE: For Silent acquireToken calls only iOS supported.
    */
   extraQueryParameters?: Record<string, string>;
   /**
@@ -418,7 +420,16 @@ export type AcquireInteractiveTokenConfigAndroid = {
   loginHint?: string;
 } & AcquireTokenCommonConfig;
 
-export type AcquireSilentTokenConfigAndroid = {} & AcquireTokenCommonConfig;
+export type AcquireSilentTokenConfigAndroid = {
+  /**
+   * Ignore any existing access token in the cache and force MSAL to get a new access token from the service.
+   */
+  forceRefresh?: boolean;
+  /**
+   * The unique identifier for the account. This is required for multiple account type silent requests.
+   */
+  id?: string;
+} & AcquireTokenCommonConfig;
 
 export type AcquireInteractiveTokenConfig = {
   ios?: AcquireInteractiveTokenConfigIOS;
@@ -426,7 +437,7 @@ export type AcquireInteractiveTokenConfig = {
 };
 
 export type AcquireSilentTokenConfig = {
-  ios?: AcquireSilentTokenConfigIOS;
+  ios: AcquireSilentTokenConfigIOS;
   android?: AcquireSilentTokenConfigAndroid;
 };
 

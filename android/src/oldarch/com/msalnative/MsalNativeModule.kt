@@ -20,7 +20,7 @@ class MsalNativeModule(context: ReactApplicationContext): ReactContextBaseJavaMo
     }
 
     override fun acquireTokenSilent(config: ReadableMap?, promise: Promise?) {
-        TODO("Not yet implemented")
+      implementation.acquireTokenSilent(config, promise)
     }
 
     override fun cancelCurrentWebAuthSession(promise: Promise?) {

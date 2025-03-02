@@ -6,13 +6,18 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.microsoft.identity.client.Account
 import com.microsoft.identity.client.AcquireTokenParameters
+import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.IPublicClientApplication.ApplicationCreatedListener
+import com.microsoft.identity.client.MultipleAccountPublicClientApplication
 import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.SingleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 import org.json.JSONArray
 import org.json.JSONObject
@@ -214,6 +219,24 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
     return map
   }
 
+  private fun isSingleAccountType(publicClientApplication: IPublicClientApplication): Boolean {
+    return publicClientApplication is SingleAccountPublicClientApplication
+  }
+
+  private fun getAccount(publicClientApplication: IPublicClientApplication, id: String?): IAccount? {
+    val isSingleAccountType = isSingleAccountType(publicClientApplication)
+    if (isSingleAccountType) {
+      return (publicClientApplication as SingleAccountPublicClientApplication).currentAccount.currentAccount
+    } else {
+      id?.let {
+        val multipleAccountPublicClientApplication = (publicClientApplication as MultipleAccountPublicClientApplication)
+        return multipleAccountPublicClientApplication.getAccount(it)
+      } ?: run {
+        throw Exception("Identifier is required to fetch account for MultipleAccountPublicClientApplication")
+      }
+    }
+  }
+
   fun createPublicClientApplication(config: ReadableMap?, promise: Promise?) {
     try {
       val configFile = createPublicClientApplicationConfigFile(config)
@@ -343,7 +366,79 @@ class MsalNativeModuleImpl(private val context: ReactApplicationContext) {
   }
 
   fun acquireTokenSilent(config: ReadableMap?, promise: Promise?) {
-    TODO("Not yet implemented")
+    publicClientApplication?.let {
+      // Acquire token silent
+      val acquireTokenSilentParametersBuilder = AcquireTokenSilentParameters.Builder()
+
+      // forceRefresh
+      if (config?.hasKey("forceRefresh") == true) {
+        val forceRefresh = config.getBoolean("forceRefresh")
+        acquireTokenSilentParametersBuilder.forceRefresh(forceRefresh)
+      }
+
+      // scopes
+      if (config?.hasKey("scopes") == true) {
+        val scopes = config.getArray("scopes")
+        scopes?.let { sco ->
+          acquireTokenSilentParametersBuilder.withScopes(getScopesFromReadableArray(sco))
+        }
+      }
+
+      // authenticationScheme
+      if (config?.hasKey("authenticationScheme") == true) {
+        val authenticationScheme = config.getMap("authenticationScheme")
+        authenticationScheme?.let { scheme ->
+          acquireTokenSilentParametersBuilder.withAuthenticationScheme(MsalNativeHelper.authenticationSchemeFromConfig(scheme))
+        }
+      }
+
+      // set authority
+      val authority = it.configuration.defaultAuthority.authorityURL.toString()
+      acquireTokenSilentParametersBuilder.fromAuthority(authority)
+
+      // Account
+      val account = getAccount(it, config?.getString("id"))
+      if (account == null) {
+        promise?.reject("ACQUIRE_TOKEN_SILENT_ERROR", "Account not found")
+        return
+      }
+
+      acquireTokenSilentParametersBuilder.forAccount(account)
+
+      acquireTokenSilentParametersBuilder.withCallback(object : AuthenticationCallback {
+        override fun onSuccess(authenticationResult: IAuthenticationResult?) {
+          authenticationResult?.let { result ->
+            promise?.resolve(MsalModelHelper.convertMsalResultToDictionary(result))
+          } ?: run {
+            promise?.reject("ACQUIRE_TOKEN_SILENT_ERROR", "Authentication result is null")
+          }
+        }
+
+        override fun onError(exception: MsalException?) {
+          var map: WritableMap? = null
+          if (exception != null) {
+            map = getWritableMapFromException(exception)
+          }
+          promise?.reject(
+            "ACQUIRE_TOKEN_SILENT_ERROR",
+            exception?.localizedMessage,
+            exception,
+            map
+          )
+        }
+
+        override fun onCancel() {
+          promise?.reject("ACQUIRE_TOKEN_SILENT_CANCELLED", "User cancelled the operation")
+        }
+
+      })
+
+      val acquireTokenSilentParameters = acquireTokenSilentParametersBuilder.build()
+      it.acquireTokenSilentAsync(acquireTokenSilentParameters)
+
+    } ?: run {
+      promise?.reject("NO_APPLICATION_CREATED", "Application not initialized. Make sure you called createPublicClientApplication")
+    }
   }
 
   fun cancelCurrentWebAuthSession(promise: Promise?) {

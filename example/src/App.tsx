@@ -72,6 +72,10 @@ export default function App() {
             // identifier:
             //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
           },
+          android: {
+            id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
+            scopes: ['User.Read'],
+          },
         });
       console.log(success, 'acquireTokenSilently');
     } catch (error) {
