@@ -73,12 +73,20 @@ export type Audience = {
   tenantId?: string;
 };
 
-export type Authority = {
-  type: 'AAD' | 'B2C';
+export type AuthorityAAD = {
+  type: 'AAD';
   audience?: Audience;
-  default: boolean;
+  default?: boolean;
+};
+
+export type AuthorityB2C = {
+  type: 'B2C';
+  audience?: Audience;
+  default?: boolean;
   authorityUrl: string;
 };
+
+export type Authority = AuthorityAAD | AuthorityB2C;
 
 export type Http = {
   /**
@@ -168,7 +176,7 @@ export type PublicClientApplicationConfigAndroid = {
   /**
    * Indicates whether to use an embedded webview, or the default browser on the device, when signing in an account or authorizing access to a resource.
    */
-  authorizationUserAgent?: 'WEBVIEW' | 'BROWSER';
+  authorizationUserAgent?: 'WEBVIEW' | 'BROWSER' | 'DEFAULT';
   /**
    * For clients that support multiple national clouds, specify true.
    * The Microsoft identity platform will then automatically redirect to the correct national cloud during authorization and token redemption.

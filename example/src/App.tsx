@@ -24,11 +24,16 @@ export default function App() {
           },
           android: {
             clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
-            redirectUri: 'msauth.msalnative.example://auth',
+            authorizationUserAgent: 'DEFAULT',
+            redirectUri:
+              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D',
             authorities: [
               {
                 type: 'AAD',
-                authorityUrl: 'https://login.microsoftonline.com/organizations',
+                audience: {
+                  type: 'AzureADMultipleOrgs',
+                  tenantId: 'organizations',
+                },
                 default: true,
               },
             ],
