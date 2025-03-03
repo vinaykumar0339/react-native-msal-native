@@ -1,8 +1,10 @@
-import { View, StyleSheet, Button, Alert } from 'react-native';
+import { View, StyleSheet, Button, Alert, Platform } from 'react-native';
 import {
   MSALGlobalConfig,
   PublicClientApplication,
 } from 'react-native-msal-native';
+import type { PublicClientApplicationIOSConfig } from '../../src/ios';
+import type { PublicClientApplicationAndroidConfig } from '../../src/andriod';
 
 export default function App() {
   const showErrorAlert = (error: any) => {
@@ -15,30 +17,32 @@ export default function App() {
 
   const createPublicClientApplication = async () => {
     try {
+      const ios: PublicClientApplicationIOSConfig = {
+        clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
+        authority: 'https://login.microsoftonline.com/organizations',
+        redirectUri: 'msauth.msalnative.example://auth',
+      };
+
+      const android: PublicClientApplicationAndroidConfig = {
+        clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
+        authorizationUserAgent: 'DEFAULT',
+        redirectUri:
+          'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D',
+        authorities: [
+          {
+            type: 'AAD',
+            audience: {
+              type: 'AzureADMultipleOrgs',
+              tenantId: 'organizations',
+            },
+            default: true,
+          },
+        ],
+      };
       const success =
-        await PublicClientApplication.instance().createPublicClientApplication({
-          ios: {
-            clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
-            authority: 'https://login.microsoftonline.com/organizations',
-            redirectUri: 'msauth.msalnative.example://auth',
-          },
-          android: {
-            clientId: '70d91d26-dd13-4436-8b6a-2aab3be01c02',
-            authorizationUserAgent: 'DEFAULT',
-            redirectUri:
-              'msauth://msalnative.example/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D',
-            authorities: [
-              {
-                type: 'AAD',
-                audience: {
-                  type: 'AzureADMultipleOrgs',
-                  tenantId: 'organizations',
-                },
-                default: true,
-              },
-            ],
-          },
-        });
+        await PublicClientApplication.instance().createPublicClientApplication(
+          Platform.OS === 'ios' ? ios : android
+        );
       console.log(success, 'createPublicClientApplication');
       Alert.alert('Success', success);
     } catch (error) {
@@ -48,16 +52,17 @@ export default function App() {
 
   const acquireToken = async () => {
     try {
-      const success = await PublicClientApplication.instance().acquireToken({
-        ios: {
-          promptType: 'select_account',
-        },
-        android: {
-          promptType: 'select_account',
-          scopes: ['User.Read'],
-        },
-      });
-      console.log(success, 'acquireToken');
+      // const ios: AcquireInteractiveTokenIOSConfig = {
+      //   promptType: 'select_account',
+      // };
+      // const andriod: AcquireInteractiveTokenAndroidConfig = {
+      //   promptType: 'select_account',
+      //   scopes: ['User.Read'],
+      // };
+      // const success = await PublicClientApplication.instance().acquireToken(
+      //   Platform.OS === 'ios' ? ios : andriod
+      // );
+      // console.log(success, 'acquireToken');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -65,19 +70,19 @@ export default function App() {
 
   const acquireTokenSilently = async () => {
     try {
-      const success =
-        await PublicClientApplication.instance().acquireTokenSilent({
-          ios: {
-            username: 'vinay.kumar@vymo072.onmicrosoft.com',
-            // identifier:
-            //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
-          },
-          android: {
-            id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
-            scopes: ['User.Read'],
-          },
-        });
-      console.log(success, 'acquireTokenSilently');
+      // const success =
+      //   await PublicClientApplication.instance().acquireTokenSilent({
+      //     ios: {
+      //       username: 'vinay.kumar@vymo072.onmicrosoft.com',
+      //       // identifier:
+      //       //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+      //     },
+      //     android: {
+      //       id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
+      //       scopes: ['User.Read'],
+      //     },
+      //   });
+      // console.log(success, 'acquireTokenSilently');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -85,8 +90,8 @@ export default function App() {
 
   const allAccounts = async () => {
     try {
-      const success = await PublicClientApplication.instance().allAccounts();
-      console.log(success, 'allAccounts');
+      // const success = await PublicClientApplication.instance().allAccounts();
+      // console.log(success, 'allAccounts');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -94,16 +99,16 @@ export default function App() {
 
   const getAccount = async () => {
     try {
-      const success = await PublicClientApplication.instance().account({
-        ios: {
-          identifier:
-            '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
-        },
-        android: {
-          id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
-        },
-      });
-      console.log(success, 'getAccount');
+      // const success = await PublicClientApplication.instance().account({
+      //   ios: {
+      //     identifier:
+      //       '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+      //   },
+      //   android: {
+      //     id: '924fefdd-bfe5-448f-ae20-56004d7ff694',
+      //   },
+      // });
+      // console.log(success, 'getAccount');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -111,14 +116,14 @@ export default function App() {
 
   const removeAccount = async () => {
     try {
-      const success = await PublicClientApplication.instance().removeAccount({
-        ios: {
-          username: 'vinay.kumar@vymo072.onmicrosoft.com',
-          // identifier:
-          //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
-        },
-      });
-      console.log(success, 'removeAccount');
+      // const success = await PublicClientApplication.instance().removeAccount({
+      //   ios: {
+      //     username: 'vinay.kumar@vymo072.onmicrosoft.com',
+      //     // identifier:
+      //     //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+      //   },
+      // });
+      // console.log(success, 'removeAccount');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -126,15 +131,15 @@ export default function App() {
 
   const signOut = async () => {
     try {
-      const success = await PublicClientApplication.instance().singOut({
-        ios: {
-          username: 'vinay.kumar@vymo072.onmicrosoft.com',
-          // identifier:
-          //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
-          signoutFromBrowser: true,
-        },
-      });
-      console.log(success, 'signOut');
+      // const success = await PublicClientApplication.instance().singOut({
+      //   ios: {
+      //     username: 'vinay.kumar@vymo072.onmicrosoft.com',
+      //     // identifier:
+      //     //   '924fefdd-bfe5-448f-ae20-56004d7ff694.694c298a-e1a5-4514-af7a-deee1f033aa7',
+      //     signoutFromBrowser: true,
+      //   },
+      // });
+      // console.log(success, 'signOut');
     } catch (error) {
       showErrorAlert(error);
     }
@@ -142,9 +147,9 @@ export default function App() {
 
   const getCurrentAccount = async () => {
     try {
-      const success =
-        await PublicClientApplication.instance().getCurrentAccount();
-      console.log(success, 'getCurrentAccount');
+      // const success =
+      //   await PublicClientApplication.instance().getCurrentAccount();
+      // console.log(success, 'getCurrentAccount');
     } catch (error) {
       showErrorAlert(error);
     }

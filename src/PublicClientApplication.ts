@@ -1,139 +1,90 @@
-import type {
-  AcquireInteractiveTokenConfig,
-  AcquireSilentTokenConfig,
-  MSALNativeResult,
-  PublicClientApplicationConfig,
-  AccountConfig,
-  SignOutAccountConfig,
-  MSALNativeAccount,
-  CurrentAccountResponse,
-} from './types';
-import MsalNative from './MsalNative';
 import { Platform } from 'react-native';
-
-interface IPublicClientApplication {
-  createPublicClientApplication(
-    config: PublicClientApplicationConfig
-  ): Promise<string>;
-  acquireToken(
-    config?: AcquireInteractiveTokenConfig
-  ): Promise<MSALNativeResult>;
-  acquireTokenSilent(
-    config?: AcquireSilentTokenConfig
-  ): Promise<MSALNativeResult>;
-  allAccounts(): Promise<MSALNativeAccount[]>;
-  account(config: AccountConfig): Promise<MSALNativeAccount>;
-  getCurrentAccount(): Promise<CurrentAccountResponse>;
-  removeAccount(config: AccountConfig): Promise<boolean>;
-  singOut(config: SignOutAccountConfig): Promise<void>;
-
-  // Device Information
-  isCompatibleAADBrokerAvailable(): Promise<boolean>;
-}
-
-abstract class APublicClientApplication {
-  instance(): IPublicClientApplication {
-    throw new Error('Method not implemented.');
-  }
-
-  cancelCurrentWebAuthSession(): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
-
-  // Device Information
-  sdkVersion(): Promise<string> {
-    throw new Error('Method not implemented.');
-  }
-}
+import {
+  PublicClientApplicationAndroid,
+  type PublicClientApplicationAndroidConfig,
+} from './andriod';
+import {
+  PublicClientApplicationIOS,
+  type PublicClientApplicationIOSConfig,
+} from './ios';
+import {
+  CommonPublicClientApplication,
+  type PublicClientApplicationConfig,
+} from './types';
 
 export class PublicClientApplication
-  extends APublicClientApplication
-  implements IPublicClientApplication
+  extends CommonPublicClientApplication
+  implements PublicClientApplicationIOS, PublicClientApplicationAndroid
 {
-  private constructor() {
+  private readonly android: PublicClientApplicationAndroid;
+  private readonly ios: PublicClientApplicationIOS;
+
+  constructor() {
     super();
+    this.android = new PublicClientApplicationAndroid();
+    this.ios = new PublicClientApplicationIOS();
   }
 
+  /**
+   * A static instance of the PublicClientApplication class.
+   * This singleton instance is used to ensure that only one instance of the
+   * PublicClientApplication is created and used throughout the application.
+   */
   private static _instance: PublicClientApplication;
-  static instance() {
+
+  /**
+   * Returns a singleton instance of the PublicClientApplication.
+   * If the instance does not already exist, it creates a new one.
+   *
+   * @returns {PublicClientApplication} The singleton instance of PublicClientApplication.
+   */
+  static instance(): PublicClientApplication {
     if (!this._instance) {
       this._instance = new PublicClientApplication();
     }
     return this._instance;
   }
 
-  static async cancelCurrentWebAuthSession(): Promise<boolean> {
-    return MsalNative.cancelCurrentWebAuthSession();
-  }
-
+  /**
+   * Creates a public client application based on the provided configuration.
+   * Android Doc: This is the entry point for developer to create public native applications and make API calls to acquire tokens.
+   * iOS Doc: Representation of OAuth 2.0 Public client application.
+   *          Create an instance of this class to acquire tokens.
+   *          One instance of MSALPublicClientApplication can be used to interact with multiple AAD clouds, and tenants, without needing to create a new instance for each authority.
+   *          For most apps, one MSALPublicClientApplication instance is sufficient.
+   *
+   * Platform: Android, iOS
+   *
+   * @param config - The configuration object for the public client application.
+   *                 It can be either `PublicClientApplicationAndroidConfig` or `PublicClientApplicationIOSConfig`.
+   *                 PublicClientApplicationConfig = PublicClientApplicationAndroidConfig | PublicClientApplicationIOSConfig
+   * @returns A promise that resolves to a string indicating the result of the client application creation.
+   */
   createPublicClientApplication(
     config: PublicClientApplicationConfig
   ): Promise<string> {
-    const platformConfig = Platform.OS === 'ios' ? config.ios : config.android;
-    if (!platformConfig) {
-      throw new Error(`please provide the config for ${Platform.OS}`);
+    if (Platform.OS === 'ios') {
+      return this.ios.createPublicClientApplication(
+        config as PublicClientApplicationIOSConfig
+      );
+    } else {
+      return this.android.createPublicClientApplication(
+        config as PublicClientApplicationAndroidConfig
+      );
     }
-    return MsalNative.createPublicClientApplication(platformConfig as any);
   }
 
-  // need to change the type of config
-  acquireToken(
-    config?: AcquireInteractiveTokenConfig
-  ): Promise<MSALNativeResult> {
-    const platformConfig =
-      Platform.OS === 'ios' ? config?.ios : config?.android;
-    if (config && !platformConfig) {
-      throw new Error(`please provide the config for ${Platform.OS}`);
+  /**
+   * A String indicates the version of current MSAL SDK
+   * Platform: Android, iOS
+   * @returns Promise<string>
+   */
+  static sdkVersion(): Promise<string> {
+    if (Platform.OS === 'ios') {
+      return PublicClientApplicationIOS.sdkVersion();
+    } else {
+      return PublicClientApplicationAndroid.sdkVersion();
     }
-    return MsalNative.acquireToken(
-      platformConfig ?? ({} as any)
-    ) as unknown as Promise<MSALNativeResult>;
-  }
-
-  // need to change the type of config
-  acquireTokenSilent(
-    config?: AcquireSilentTokenConfig
-  ): Promise<MSALNativeResult> {
-    const platformConfig =
-      Platform.OS === 'ios' ? config?.ios : config?.android;
-    if (config && !platformConfig) {
-      throw new Error(`please provide the config for ${Platform.OS}`);
-    }
-    return MsalNative.acquireTokenSilent(
-      platformConfig ?? ({} as any)
-    ) as unknown as Promise<MSALNativeResult>;
-  }
-
-  allAccounts(): Promise<MSALNativeAccount[]> {
-    return MsalNative.allAccounts() as unknown as Promise<MSALNativeAccount[]>;
-  }
-
-  account(config: AccountConfig): Promise<MSALNativeAccount> {
-    const platformConfig =
-      Platform.OS === 'ios' ? config?.ios : config?.android;
-    if (config && !platformConfig) {
-      throw new Error(`please provide the config for ${Platform.OS}`);
-    }
-    return MsalNative.account(
-      platformConfig as any
-    ) as unknown as Promise<MSALNativeAccount>;
-  }
-
-  getCurrentAccount(): Promise<CurrentAccountResponse> {
-    return MsalNative.getCurrentAccount() as unknown as Promise<CurrentAccountResponse>;
-  }
-
-  removeAccount(config: AccountConfig): Promise<boolean> {
-    const platformConfig =
-      Platform.OS === 'ios' ? config?.ios : config?.android;
-    if (config && !platformConfig) {
-      throw new Error(`please provide the config for ${Platform.OS}`);
-    }
-    return MsalNative.removeAccount(platformConfig as any);
-  }
-
-  singOut(config: SignOutAccountConfig): Promise<void> {
-    return MsalNative.signOut(config as any);
   }
 
   /**
@@ -142,15 +93,26 @@ export class PublicClientApplication
    * @returns Promise<boolean>
    */
   isCompatibleAADBrokerAvailable(): Promise<boolean> {
-    return MsalNative.isCompatibleAADBrokerAvailable();
+    if (Platform.OS === 'android') {
+      throw new Error(
+        'isCompatibleAADBrokerAvailable is not available on Android'
+      );
+    }
+    return this.ios.isCompatibleAADBrokerAvailable();
   }
 
   /**
-   * A String indicates the version of current MSAL SDK.
+   * Cancels any currently running interactive web authentication session,
+   * resulting in the authorization UI being dismissed and the acquireToken request ending in a cancelation error.
    * Platform: iOS
-   * @returns Promise<string>
+   * @returns Promise<boolean>
    */
-  static sdkVersion(): Promise<string> {
-    return MsalNative.sdkVersion();
+  cancelCurrentWebAuthSession(): Promise<boolean> {
+    if (Platform.OS === 'android') {
+      throw new Error(
+        'cancelCurrentWebAuthSession is not available on Android'
+      );
+    }
+    return this.ios.cancelCurrentWebAuthSession();
   }
 }
